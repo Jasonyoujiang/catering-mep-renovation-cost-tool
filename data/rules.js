@@ -1,4 +1,8 @@
 (function attachRenovationRules(global) {
+  const cableTable = typeof require === 'function'
+    ? require('./cable-table.js')
+    : global.MepCableTable;
+
   const DINING_TYPES = {
     light: {
       id: 'light',
@@ -54,15 +58,6 @@
     },
   };
 
-  const CABLE_THRESHOLDS = [
-    { maxDemandKw: 30, value: 'YJV-5x16' },
-    { maxDemandKw: 50, value: 'YJV-4x35+1x16' },
-    { maxDemandKw: 80, value: 'YJV-4x70+1x35' },
-    { maxDemandKw: 120, value: 'YJV-4x95+1x50' },
-    { maxDemandKw: 180, value: 'YJV-4x150+1x70' },
-    { maxDemandKw: Infinity, value: '需专项复核供电方案' },
-  ];
-
   function getDiningTypeOptions() {
     return Object.values(DINING_TYPES).map((item) => ({
       id: item.id,
@@ -108,6 +103,26 @@
     return Number.isInteger(value) ? `${value} kW` : `${value.toFixed(1)} kW`;
   }
 
+  function formatCableValue(selection) {
+    if (selection.isOutOfRange) {
+      return selection.recommendedCable;
+    }
+
+    return `YJV ${selection.recommendedCable}`;
+  }
+
+  function buildCableNote(demandKw, selection, hasSpecifiedDemand) {
+    const source = hasSpecifiedDemand
+      ? `按手动指定用电量 ${formatKw(demandKw)} 匹配，适用于主力店、水吧或已有明确设备需求的商户`
+      : `按 ${formatKw(demandKw)} 估算负荷匹配`;
+
+    if (selection.isOutOfRange) {
+      return `${source}，已超过表中 ${selection.ratedPowerKw} kW 最大档，需专项复核供配电方案、变压器容量和低压出线条件。`;
+    }
+
+    return `${source}，保守向上取表中 ${selection.ratedPowerKw} kW 档，Kx=${selection.coefficientKx}，计算电流约 ${selection.calculatedCurrentA} A；需核实上级开关容量、计量方式和电缆敷设路径。`;
+  }
+
   function calculateRenovationPlan(area, diningTypeId, options = {}) {
     assertValidArea(area);
     const diningType = getDiningType(diningTypeId);
@@ -117,7 +132,7 @@
     const demandKw = hasSpecifiedDemand
       ? options.specifiedDemandKw
       : Math.ceil(area * diningType.demandKwPerSquareMeter);
-    const cable = findThresholdValue(CABLE_THRESHOLDS, demandKw, 'maxDemandKw');
+    const cableSelection = cableTable.selectCableByDemandKw(demandKw);
     const water = findThresholdValue(diningType.waterDiameterThresholds, area, 'maxArea');
     const drainage = findThresholdValue(diningType.drainageDiameterThresholds, area, 'maxArea');
     const exhaustAirVolume = roundToStep(area * diningType.exhaustAirVolumePerSquareMeter, 100);
@@ -145,12 +160,10 @@
         },
         electricalCable: {
           label: '配套电缆规格',
-          value: cable,
-          numericValue: demandKw,
+          value: formatCableValue(cableSelection),
+          numericValue: cableSelection.ratedPowerKw,
           unit: '规格',
-          note: hasSpecifiedDemand
-            ? `按手动指定用电量 ${formatKw(demandKw)} 匹配，适用于主力店、水吧或已有明确设备需求的商户；需核实上级开关容量、计量方式和电缆敷设路径。`
-            : `按 ${formatKw(demandKw)} 估算负荷匹配，需核实上级开关容量、计量方式和电缆敷设路径。`,
+          note: buildCableNote(demandKw, cableSelection, hasSpecifiedDemand),
         },
         water: {
           label: '供水管径',
@@ -195,7 +208,7 @@
 
   const api = {
     DINING_TYPES,
-    CABLE_THRESHOLDS,
+    selectCableByDemandKw: cableTable.selectCableByDemandKw,
     calculateRenovationPlan,
     getDiningTypeOptions,
   };

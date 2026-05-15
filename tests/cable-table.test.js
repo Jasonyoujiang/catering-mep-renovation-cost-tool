@@ -1,0 +1,33 @@
+const test = require('node:test');
+const assert = require('node:assert/strict');
+
+const {
+  CABLE_SELECTION_TABLE,
+  selectCableByDemandKw,
+} = require('../data/cable-table.js');
+
+test('selects the next higher cable table row conservatively', () => {
+  const selection = selectCableByDemandKw(28);
+
+  assert.equal(selection.ratedPowerKw, 30);
+  assert.equal(selection.coefficientKx, 1);
+  assert.equal(selection.calculatedCurrentA, 53.6);
+  assert.equal(selection.recommendedCable, '3×10mm²');
+  assert.equal(selection.isRoundedUp, true);
+});
+
+test('selects the exact cable table row when demand matches a rating', () => {
+  const selection = selectCableByDemandKw(90);
+
+  assert.equal(selection.ratedPowerKw, 90);
+  assert.equal(selection.coefficientKx, 0.8);
+  assert.equal(selection.calculatedCurrentA, 128.7);
+  assert.equal(selection.recommendedCable, '3×50mm²');
+  assert.equal(selection.isRoundedUp, false);
+});
+
+test('keeps the full source table available for extension', () => {
+  assert.equal(CABLE_SELECTION_TABLE.length, 76);
+  assert.equal(CABLE_SELECTION_TABLE[0].ratedPowerKw, 10);
+  assert.equal(CABLE_SELECTION_TABLE.at(-1).ratedPowerKw, 500);
+});
