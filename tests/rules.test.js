@@ -33,7 +33,7 @@ test('calculates a standard catering MEP plan from area and dining type', () => 
   assert.equal(plan.items.water.value, 'DN40');
   assert.equal(plan.items.drainage.value, 'DN160');
   assert.equal(plan.items.exhaust.value, '3840 m3/h');
-  assert.equal(plan.items.greaseTrap.value, '1.2 m3');
+  assert.equal(plan.items.greaseTrap.value, '2.0 m3');
   assert.ok(plan.risks.some((item) => item.includes('原始供电容量')));
   assert.ok(plan.assumptions.some((item) => item.includes('初步测算')));
 });
@@ -85,14 +85,18 @@ test('calculates exhaust air volume from dining type indicators', () => {
 });
 
 test('calculates grease trap volume from dining type indicators', () => {
+  const smallLight = calculateRenovationPlan(50, 'light');
   const light = calculateRenovationPlan(100, 'light');
+  const overOneHundredStandard = calculateRenovationPlan(120, 'standard');
   const standard = calculateRenovationPlan(100, 'standard');
   const heavy = calculateRenovationPlan(100, 'heavy');
 
+  assert.equal(smallLight.items.greaseTrap.value, '0.5 m3');
   assert.equal(light.items.greaseTrap.value, '0.5 m3');
   assert.equal(standard.items.greaseTrap.value, '1.0 m3');
+  assert.equal(overOneHundredStandard.items.greaseTrap.value, '2.0 m3');
   assert.equal(heavy.items.greaseTrap.value, '1.5 m3');
-  assert.equal(standard.items.greaseTrap.note, '按 1 m3/100m2 指标计算，结果向上取 0.1 m3。');
+  assert.equal(standard.items.greaseTrap.note, '按 1 m3/100m2 指标计算，不足 100m2 按 100m2 计。');
 });
 
 test('rejects unsupported area and dining type values', () => {
@@ -107,5 +111,5 @@ test('exposes dining type data for future extension', () => {
   assert.equal(DINING_TYPES.standard.demandKwPerSquareMeter, 0.4);
   assert.equal(DINING_TYPES.heavy.demandKwPerSquareMeter, 0.5);
   assert.equal(DINING_TYPES.heavy.exhaustAirVolumePerSquareMeter, 37);
-  assert.equal(DINING_TYPES.light.greaseTrapCubicMeterPerSquareMeter, 0.005);
+  assert.equal(DINING_TYPES.light.greaseTrapCubicMeterPerHundredSquareMeters, 0.5);
 });
