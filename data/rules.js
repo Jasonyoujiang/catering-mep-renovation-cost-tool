@@ -115,12 +115,19 @@
         description: diningType.description,
       },
       items: {
-        electrical: {
+        electricalLoad: {
+          label: '估算用电负荷',
+          value: `${demandKw} kW`,
+          numericValue: demandKw,
+          unit: 'kW',
+          note: `按 ${diningType.name} ${diningType.demandKwPerSquareMeter} kW/m2 经验系数估算，暂未考虑设备清单和同时使用系数。`,
+        },
+        electricalCable: {
           label: '配套电缆规格',
           value: cable,
           numericValue: demandKw,
-          unit: 'kW 估算负荷',
-          note: `按 ${diningType.name} ${diningType.demandKwPerSquareMeter} kW/m2 的示例系数估算。`,
+          unit: '规格',
+          note: `按 ${demandKw} kW 估算负荷匹配，需核实上级开关容量、计量方式和电缆敷设路径。`,
         },
         water: {
           label: '供水管径',

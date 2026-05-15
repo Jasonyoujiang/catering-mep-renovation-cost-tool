@@ -24,7 +24,9 @@ test('calculates a standard catering MEP plan from area and dining type', () => 
 
   assert.equal(plan.area, 120);
   assert.equal(plan.diningType.name, '普通餐饮');
-  assert.equal(plan.items.electrical.value, 'YJV-4x70+1x35');
+  assert.equal(plan.items.electricalLoad.value, '60 kW');
+  assert.equal(plan.items.electricalLoad.numericValue, 60);
+  assert.equal(plan.items.electricalCable.value, 'YJV-4x70+1x35');
   assert.equal(plan.items.water.value, 'DN40');
   assert.equal(plan.items.drainage.value, 'DN100');
   assert.equal(plan.items.exhaust.value, '5400 m3/h');
