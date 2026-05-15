@@ -14,6 +14,11 @@
     { id: 'yjv-4x185-1x95', specification: '4×185+1×95', basePrice: 726.22 },
     { id: 'yjv-4x240-1x120', specification: '4×240+1×120', basePrice: 924.31 },
   ];
+  const DOUBLE_RUN_CABLE_IDS = new Set([
+    'yjv-4x70-1x35',
+    'yjv-4x95-1x50',
+    'yjv-4x120-1x70',
+  ]);
 
   const AIR_VOLUME_PRICE_LIST = [
     { airVolume: 4000, purifierRange: [3200, 4000], fanRange: [7000, 9000] },
@@ -62,7 +67,7 @@
   }
 
   function createCableSpecifications() {
-    return CABLE_METER_COST_LIST.map((item) => ({
+    const singleRunSpecifications = CABLE_METER_COST_LIST.map((item) => ({
       id: item.id,
       name: `YJV ${item.specification}`,
       unit: 'm',
@@ -71,6 +76,19 @@
       price: roundToCurrencyPrecision(item.basePrice * CABLE_COST_COEFFICIENT),
       remark: 'YJV 0.6/1kV 国标含税中价位每米成本×1.4综合系数，系数考虑人工和配件；不含复杂桥架、拆改、夜间施工及铜价波动。',
     }));
+
+    const doubleRunSpecifications = singleRunSpecifications
+      .filter((item) => DOUBLE_RUN_CABLE_IDS.has(item.id))
+      .map((item) => ({
+        ...item,
+        id: `double-${item.id}`,
+        name: `双拼 ${item.name}`,
+        price: roundToCurrencyPrecision(item.price * 2),
+        parallelRuns: 2,
+        remark: '双拼电缆按对应单根电缆每米综合单价×2测算，已包含1.4人工和配件综合系数；需复核桥架容量、敷设空间和并联电缆施工条件。',
+      }));
+
+    return [...singleRunSpecifications, ...doubleRunSpecifications];
   }
 
   const COST_CATALOG = {
