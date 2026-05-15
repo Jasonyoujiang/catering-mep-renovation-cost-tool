@@ -21,9 +21,10 @@ test('returns first-version expandable cost categories', () => {
 test('returns specifications for a selected category', () => {
   const cableSpecs = getSpecificationsForCategory('cable');
 
-  assert.equal(cableSpecs.length, 13);
+  assert.equal(cableSpecs.length, 12);
   assert.equal(cableSpecs[0].unit, 'm');
   assert.ok(cableSpecs.some((item) => item.name === 'YJV 4×70+1×35'));
+  assert.equal(cableSpecs.some((item) => item.name === 'YJV 4×300+1×150'), false);
 });
 
 test('applies the 1.4 labor and accessory coefficient to cable meter costs', () => {

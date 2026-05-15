@@ -13,7 +13,6 @@
     { id: 'yjv-4x150-1x70', specification: '4×150+1×70', basePrice: 565.45 },
     { id: 'yjv-4x185-1x95', specification: '4×185+1×95', basePrice: 726.22 },
     { id: 'yjv-4x240-1x120', specification: '4×240+1×120', basePrice: 924.31 },
-    { id: 'yjv-4x300-1x150', specification: '4×300+1×150', basePrice: 1167.59 },
   ];
 
   const AIR_VOLUME_PRICE_LIST = [
