@@ -7,6 +7,7 @@ global.MepCostCatalog = require('../data/items.js');
 const {
   validateAreaInput,
   validateOptionalDemandInput,
+  resolveSpecifiedDemand,
   formatCurrency,
   buildPlanResultRows,
   buildCostResultRows,
@@ -41,6 +42,23 @@ test('validates optional specified electrical demand input', () => {
     valid: false,
     value: null,
     message: '指定用电量必须为空，或填写大于 0 的数字。',
+  });
+});
+
+test('uses specified demand only when the checkbox is enabled', () => {
+  assert.equal(resolveSpecifiedDemand(false, '90').valid, true);
+  assert.equal(resolveSpecifiedDemand(false, '90').value, null);
+
+  assert.deepEqual(resolveSpecifiedDemand(true, '90'), {
+    valid: true,
+    value: 90,
+    message: '',
+  });
+
+  assert.deepEqual(resolveSpecifiedDemand(true, ''), {
+    valid: false,
+    value: null,
+    message: '勾选指定用电量后，请填写大于 0 的用电量。',
   });
 });
 

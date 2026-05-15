@@ -44,6 +44,26 @@
     };
   }
 
+  function resolveSpecifiedDemand(isEnabled, value) {
+    if (!isEnabled) {
+      return {
+        valid: true,
+        value: null,
+        message: '',
+      };
+    }
+
+    if (!value) {
+      return {
+        valid: false,
+        value: null,
+        message: '勾选指定用电量后，请填写大于 0 的用电量。',
+      };
+    }
+
+    return validateOptionalDemandInput(value);
+  }
+
   function formatCurrency(value) {
     return `¥${Number(value).toLocaleString('zh-CN', { maximumFractionDigits: 0 })}`;
   }
@@ -132,12 +152,16 @@
   function handlePlanSubmit(event) {
     event.preventDefault();
     const areaInput = document.querySelector('[data-area]');
+    const specifiedDemandToggle = document.querySelector('[data-specified-demand-toggle]');
     const specifiedDemandInput = document.querySelector('[data-specified-demand]');
     const diningTypeSelect = document.querySelector('[data-dining-type]');
     const output = document.querySelector('[data-plan-output]');
     const message = document.querySelector('[data-plan-message]');
     const validation = validateAreaInput(areaInput.value);
-    const demandValidation = validateOptionalDemandInput(specifiedDemandInput.value);
+    const demandValidation = resolveSpecifiedDemand(
+      specifiedDemandToggle.checked,
+      specifiedDemandInput.value
+    );
 
     output.innerHTML = '';
 
@@ -190,6 +214,13 @@
     renderSpecifications('');
 
     document.querySelector('[data-plan-form]').addEventListener('submit', handlePlanSubmit);
+    document.querySelector('[data-specified-demand-toggle]').addEventListener('change', (event) => {
+      const input = document.querySelector('[data-specified-demand]');
+      input.disabled = !event.target.checked;
+      if (!event.target.checked) {
+        input.value = '';
+      }
+    });
     document.querySelector('[data-cost-form]').addEventListener('submit', handleCostLookup);
     document.querySelector('[data-cost-category]').addEventListener('change', (event) => {
       renderSpecifications(event.target.value);
@@ -201,6 +232,7 @@
   const api = {
     validateAreaInput,
     validateOptionalDemandInput,
+    resolveSpecifiedDemand,
     formatCurrency,
     buildPlanResultRows,
     buildCostResultRows,

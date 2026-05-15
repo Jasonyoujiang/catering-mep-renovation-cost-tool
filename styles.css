@@ -129,6 +129,20 @@ label {
   font-weight: 700;
 }
 
+.checkbox-field {
+  display: flex;
+  min-height: 44px;
+  align-items: center;
+  gap: 10px;
+  color: var(--ink);
+}
+
+.checkbox-field input {
+  width: 18px;
+  min-height: 18px;
+  accent-color: var(--accent);
+}
+
 input,
 select,
 button {

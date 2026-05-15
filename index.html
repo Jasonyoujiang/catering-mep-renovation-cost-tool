@@ -35,9 +35,13 @@
               <span>餐饮类型</span>
               <select data-dining-type></select>
             </label>
+            <label class="checkbox-field">
+              <input data-specified-demand-toggle type="checkbox">
+              <span>启用指定用电量</span>
+            </label>
             <label>
-              <span>指定用电量（kW，可选）</span>
-              <input data-specified-demand type="number" min="0" step="0.1" placeholder="例如 90">
+              <span>指定用电量（kW）</span>
+              <input data-specified-demand type="number" min="0" step="0.1" placeholder="例如 90" disabled>
             </label>
             <button type="submit">生成方案</button>
           </form>
