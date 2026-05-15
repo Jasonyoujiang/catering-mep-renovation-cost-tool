@@ -26,7 +26,7 @@ test('calculates a standard catering MEP plan from area and dining type', () => 
   assert.equal(plan.diningType.name, '普通餐饮');
   assert.equal(plan.items.electricalLoad.value, '48 kW');
   assert.equal(plan.items.electricalLoad.numericValue, 48);
-  assert.equal(plan.items.electricalCable.value, 'YJV 3×25mm²');
+  assert.equal(plan.items.electricalCable.value, 'YJV 4×25+1×16mm²');
   assert.equal(plan.items.electricalCable.note.includes('50 kW 档'), true);
   assert.equal(plan.items.electricalCable.note.includes('Kx=0.9'), true);
   assert.equal(plan.items.electricalCable.note.includes('80.4 A'), true);
@@ -44,7 +44,7 @@ test('uses the user supplied electrical demand when it is specified', () => {
   assert.equal(plan.items.electricalLoad.value, '90 kW');
   assert.equal(plan.items.electricalLoad.numericValue, 90);
   assert.equal(plan.items.electricalLoad.note.includes('手动指定用电量'), true);
-  assert.equal(plan.items.electricalCable.value, 'YJV 3×50mm²');
+  assert.equal(plan.items.electricalCable.value, 'YJV 4×50+1×25mm²');
   assert.equal(plan.items.electricalCable.note.includes('90 kW 档'), true);
   assert.equal(plan.items.electricalCable.note.includes('主力店、水吧'), true);
 });

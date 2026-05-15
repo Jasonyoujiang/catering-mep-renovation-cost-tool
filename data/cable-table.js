@@ -78,6 +78,17 @@
     { ratedPowerKw: 500, coefficientKx: 0.6, calculatedCurrentA: 536.3, recommendedCable: '2×(3×120mm²)' },
   ];
 
+  const FOUR_PLUS_ONE_PE_SIZES = new Map([
+    [10, 6],
+    [16, 10],
+    [25, 16],
+    [35, 16],
+    [50, 25],
+    [70, 35],
+    [95, 50],
+    [120, 70],
+  ]);
+
   function assertValidDemandKw(demandKw) {
     if (!Number.isFinite(demandKw) || demandKw <= 0) {
       throw new Error('计算负荷必须为大于 0 的数字');
@@ -106,8 +117,38 @@
     };
   }
 
+  function formatFourPlusOneCableByPhaseSize(phaseCrossSection) {
+    const peCrossSection = FOUR_PLUS_ONE_PE_SIZES.get(phaseCrossSection);
+
+    if (!peCrossSection) {
+      return null;
+    }
+
+    return `YJV 4×${phaseCrossSection}+1×${peCrossSection}mm²`;
+  }
+
+  function formatYjvCableSpecification(recommendedCable) {
+    const singleCableMatch = recommendedCable.match(/^3×(\d+)mm²$/);
+    if (singleCableMatch) {
+      const phaseCrossSection = Number(singleCableMatch[1]);
+      const formatted = formatFourPlusOneCableByPhaseSize(phaseCrossSection);
+      return formatted || `YJV ${recommendedCable}`;
+    }
+
+    const parallelCableMatch = recommendedCable.match(/^(\d+)×\(3×(\d+)mm²\)$/);
+    if (parallelCableMatch) {
+      const parallelCount = Number(parallelCableMatch[1]);
+      const phaseCrossSection = Number(parallelCableMatch[2]);
+      const formatted = formatFourPlusOneCableByPhaseSize(phaseCrossSection);
+      return formatted ? `${parallelCount}×(${formatted})` : `YJV ${recommendedCable}`;
+    }
+
+    return `YJV ${recommendedCable}`;
+  }
+
   const api = {
     CABLE_SELECTION_TABLE,
+    formatYjvCableSpecification,
     selectCableByDemandKw,
   };
 

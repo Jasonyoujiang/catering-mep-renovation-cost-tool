@@ -108,7 +108,7 @@
       return selection.recommendedCable;
     }
 
-    return `YJV ${selection.recommendedCable}`;
+    return cableTable.formatYjvCableSpecification(selection.recommendedCable);
   }
 
   function buildCableNote(demandKw, selection, hasSpecifiedDemand) {
