@@ -7,6 +7,7 @@ global.MepCostCatalog = require('../data/items.js');
 const {
   validateAreaInput,
   formatCurrency,
+  buildPlanResultRows,
   buildCostResultRows,
 } = require('../app.js');
 
@@ -26,6 +27,19 @@ test('rejects blank, zero, and non-number shop area input', () => {
 
 test('formats Chinese currency for cost lookup', () => {
   assert.equal(formatCurrency(18500), '¥18,500');
+});
+
+test('builds renovation plan rows for table output', () => {
+  const plan = global.MepRenovationRules.calculateRenovationPlan(120, 'standard');
+  const rows = buildPlanResultRows(plan);
+
+  assert.deepEqual(rows, [
+    ['配套电缆规格', 'YJV-4x70+1x35', '按 普通餐饮 0.5 kW/m2 的示例系数估算。'],
+    ['供水管径', 'DN40', '需结合厨房用水点、热水系统和原管网压力复核。'],
+    ['排水管径', 'DN100', '需复核排水坡度、隔油接入和检修条件。'],
+    ['排油烟风量', '5400 m3/h', '按 45 m3/h/m2 的示例系数估算。'],
+    ['占用隔油池容积', '3.0 m3', '需结合既有隔油池总容量、服务商户数量和清掏频次复核。'],
+  ]);
 });
 
 test('builds cost result rows from a selected category and specification', () => {

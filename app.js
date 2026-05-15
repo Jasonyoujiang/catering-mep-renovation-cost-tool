@@ -23,6 +23,10 @@
     return `¥${Number(value).toLocaleString('zh-CN', { maximumFractionDigits: 0 })}`;
   }
 
+  function buildPlanResultRows(plan) {
+    return Object.values(plan.items).map((item) => [item.label, item.value, item.note]);
+  }
+
   function buildCostResultRows(categoryId, specificationId) {
     const item = catalog.findCostItem(categoryId, specificationId);
     return [
@@ -76,15 +80,20 @@
     select.disabled = false;
   }
 
-  function renderPlanItem(container, item) {
-    const card = document.createElement('article');
-    card.className = 'result-card';
-    card.innerHTML = `
-      <span class="result-card__label">${item.label}</span>
-      <strong>${item.value}</strong>
-      <small>${item.note}</small>
+  function renderTable(container, className, headers, rows) {
+    const headerCells = headers.map((header) => `<th>${header}</th>`).join('');
+    const bodyRows = rows
+      .map((row) => `<tr>${row.map((cell) => `<td>${cell}</td>`).join('')}</tr>`)
+      .join('');
+
+    container.innerHTML = `
+      <table class="${className}">
+        <thead>
+          <tr>${headerCells}</tr>
+        </thead>
+        <tbody>${bodyRows}</tbody>
+      </table>
     `;
-    container.appendChild(card);
   }
 
   function renderList(container, title, items) {
@@ -113,10 +122,7 @@
     const plan = rules.calculateRenovationPlan(validation.area, diningTypeSelect.value);
     setMessage(message, `${plan.diningType.name} ${plan.area} m2 初步改造参数已生成。`, 'success');
 
-    const grid = document.createElement('div');
-    grid.className = 'result-grid';
-    Object.values(plan.items).forEach((item) => renderPlanItem(grid, item));
-    output.appendChild(grid);
+    renderTable(output, 'plan-table', ['子项', '推荐参数', '测算依据 / 复核提示'], buildPlanResultRows(plan));
     renderList(output, '风险提示', plan.risks);
     renderList(output, '后续复核前提', plan.assumptions);
   }
@@ -136,12 +142,9 @@
     }
 
     const rows = buildCostResultRows(categoryId, specificationId);
-    const tableRows = rows
-      .map(([label, value]) => `<tr><th>${label}</th><td>${value}</td></tr>`)
-      .join('');
 
     setMessage(message, '造价资料已查询。', 'success');
-    output.innerHTML = `<table class="cost-table"><tbody>${tableRows}</tbody></table>`;
+    renderTable(output, 'cost-table', ['项目', '内容'], rows);
   }
 
   function initApp() {
@@ -161,6 +164,7 @@
   const api = {
     validateAreaInput,
     formatCurrency,
+    buildPlanResultRows,
     buildCostResultRows,
     initApp,
   };
