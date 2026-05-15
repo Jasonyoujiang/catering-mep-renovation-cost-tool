@@ -1,4 +1,21 @@
 (function attachCostCatalog(global) {
+  const CABLE_COST_COEFFICIENT = 1.4;
+  const CABLE_METER_COST_LIST = [
+    { id: 'yjv-4x6-1x4', specification: '4×6+1×4', basePrice: 38.76 },
+    { id: 'yjv-4x10-1x6', specification: '4×10+1×6', basePrice: 50.67 },
+    { id: 'yjv-4x16-1x10', specification: '4×16+1×10', basePrice: 75.10 },
+    { id: 'yjv-4x25-1x16', specification: '4×25+1×16', basePrice: 111.14 },
+    { id: 'yjv-4x35-1x16', specification: '4×35+1×16', basePrice: 144.44 },
+    { id: 'yjv-4x50-1x25', specification: '4×50+1×25', basePrice: 197.25 },
+    { id: 'yjv-4x70-1x35', specification: '4×70+1×35', basePrice: 270.21 },
+    { id: 'yjv-4x95-1x50', specification: '4×95+1×50', basePrice: 371.17 },
+    { id: 'yjv-4x120-1x70', specification: '4×120+1×70', basePrice: 465.76 },
+    { id: 'yjv-4x150-1x70', specification: '4×150+1×70', basePrice: 565.45 },
+    { id: 'yjv-4x185-1x95', specification: '4×185+1×95', basePrice: 726.22 },
+    { id: 'yjv-4x240-1x120', specification: '4×240+1×120', basePrice: 924.31 },
+    { id: 'yjv-4x300-1x150', specification: '4×300+1×150', basePrice: 1167.59 },
+  ];
+
   const AIR_VOLUME_PRICE_LIST = [
     { airVolume: 4000, purifierRange: [3200, 4000], fanRange: [7000, 9000] },
     { airVolume: 6000, purifierRange: [4800, 6000], fanRange: [8000, 11000] },
@@ -41,34 +58,28 @@
     }));
   }
 
+  function roundToCurrencyPrecision(value) {
+    return Math.round(value * 100) / 100;
+  }
+
+  function createCableSpecifications() {
+    return CABLE_METER_COST_LIST.map((item) => ({
+      id: item.id,
+      name: `YJV ${item.specification}`,
+      unit: 'm',
+      basePrice: item.basePrice,
+      costCoefficient: CABLE_COST_COEFFICIENT,
+      price: roundToCurrencyPrecision(item.basePrice * CABLE_COST_COEFFICIENT),
+      remark: 'YJV 0.6/1kV 国标含税中价位每米成本×1.4综合系数，系数考虑人工和配件；不含复杂桥架、拆改、夜间施工及铜价波动。',
+    }));
+  }
+
   const COST_CATALOG = {
     cable: {
       id: 'cable',
       name: '电缆',
-      description: '餐饮商铺动力电缆参考单价',
-      specifications: [
-        {
-          id: 'yjv-5x16',
-          name: 'YJV-5x16',
-          unit: 'm',
-          price: 95,
-          remark: '样例参考价，含主材，不含复杂桥架、拆改和夜间施工增加费。',
-        },
-        {
-          id: 'yjv-4x35-1x16',
-          name: 'YJV-4x35+1x16',
-          unit: 'm',
-          price: 165,
-          remark: '样例参考价，需结合敷设路径和铜价波动复核。',
-        },
-        {
-          id: 'yjv-4x70-1x35',
-          name: 'YJV-4x70+1x35',
-          unit: 'm',
-          price: 310,
-          remark: '样例参考价，适合方案阶段测算，不替代招标清单。',
-        },
-      ],
+      description: 'YJV 电缆每米综合成本，含人工和配件系数',
+      specifications: createCableSpecifications(),
     },
     stainlessDuct: {
       id: 'stainlessDuct',

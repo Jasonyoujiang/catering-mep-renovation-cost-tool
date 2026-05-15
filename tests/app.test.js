@@ -64,6 +64,7 @@ test('uses specified demand only when the checkbox is enabled', () => {
 
 test('formats Chinese currency for cost lookup', () => {
   assert.equal(formatCurrency(18500), '¥18,500');
+  assert.equal(formatCurrency(54.264), '¥54.26');
 });
 
 test('builds renovation plan rows for table output', () => {
@@ -81,13 +82,13 @@ test('builds renovation plan rows for table output', () => {
 });
 
 test('builds cost result rows from a selected category and specification', () => {
-  const rows = buildCostResultRows('exhaustFan', 'fan-10000');
+  const rows = buildCostResultRows('cable', 'yjv-4x95-1x50');
 
   assert.deepEqual(rows, [
-    ['子项名称', '排油烟风机'],
-    ['规格型号', '排油烟风机 10000 m3/h'],
-    ['计量单位', '台'],
-    ['参考价格区间', '¥12,000-¥18,000'],
-    ['价格说明', '低噪音柜式离心油烟风机参考区间，满足商场噪音标准≤65dB；不含安装、运输及税费。'],
+    ['子项名称', '电缆'],
+    ['规格型号', 'YJV 4×95+1×50'],
+    ['计量单位', 'm'],
+    ['参考单价', '¥519.64'],
+    ['价格说明', 'YJV 0.6/1kV 国标含税中价位每米成本×1.4综合系数，系数考虑人工和配件；不含复杂桥架、拆改、夜间施工及铜价波动。'],
   ]);
 });

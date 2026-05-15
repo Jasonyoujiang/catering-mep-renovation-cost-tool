@@ -65,7 +65,7 @@
   }
 
   function formatCurrency(value) {
-    return `¥${Number(value).toLocaleString('zh-CN', { maximumFractionDigits: 0 })}`;
+    return `¥${Number(value).toLocaleString('zh-CN', { maximumFractionDigits: 2 })}`;
   }
 
   function formatCostAmount(item) {

@@ -21,9 +21,21 @@ test('returns first-version expandable cost categories', () => {
 test('returns specifications for a selected category', () => {
   const cableSpecs = getSpecificationsForCategory('cable');
 
-  assert.equal(cableSpecs.length >= 3, true);
+  assert.equal(cableSpecs.length, 13);
   assert.equal(cableSpecs[0].unit, 'm');
-  assert.ok(cableSpecs.some((item) => item.name === 'YJV-4x70+1x35'));
+  assert.ok(cableSpecs.some((item) => item.name === 'YJV 4×70+1×35'));
+});
+
+test('applies the 1.4 labor and accessory coefficient to cable meter costs', () => {
+  const item = findCostItem('cable', 'yjv-4x95-1x50');
+
+  assert.equal(item.categoryName, '电缆');
+  assert.equal(item.name, 'YJV 4×95+1×50');
+  assert.equal(item.unit, 'm');
+  assert.equal(item.price, 519.64);
+  assert.equal(item.basePrice, 371.17);
+  assert.equal(item.costCoefficient, 1.4);
+  assert.ok(item.remark.includes('人工和配件'));
 });
 
 test('finds a single cost item by category and specification id', () => {
