@@ -9,15 +9,6 @@
       name: '轻餐',
       description: '饮品、烘焙、简餐等低油烟业态',
       demandKwPerSquareMeter: 0.25,
-      waterDiameterThresholds: [
-        { maxArea: 120, value: 'DN25' },
-        { maxArea: 250, value: 'DN32' },
-        { maxArea: Infinity, value: 'DN40' },
-      ],
-      drainageDiameterThresholds: [
-        { maxArea: 120, value: 'DN75' },
-        { maxArea: Infinity, value: 'DN100' },
-      ],
       exhaustAirVolumePerSquareMeter: 25,
       greaseTrapCubicMeterPerSquareMeter: 0.015,
     },
@@ -26,16 +17,6 @@
       name: '普通餐饮',
       description: '常规正餐、快餐、带基础烹饪的餐饮业态',
       demandKwPerSquareMeter: 0.4,
-      waterDiameterThresholds: [
-        { maxArea: 100, value: 'DN32' },
-        { maxArea: 250, value: 'DN40' },
-        { maxArea: Infinity, value: 'DN50' },
-      ],
-      drainageDiameterThresholds: [
-        { maxArea: 80, value: 'DN75' },
-        { maxArea: 250, value: 'DN100' },
-        { maxArea: Infinity, value: 'DN150' },
-      ],
       exhaustAirVolumePerSquareMeter: 45,
       greaseTrapCubicMeterPerSquareMeter: 0.025,
     },
@@ -44,19 +25,22 @@
       name: '重油烟餐饮',
       description: '火锅、烧烤、中餐重油烟等高排烟业态',
       demandKwPerSquareMeter: 0.5,
-      waterDiameterThresholds: [
-        { maxArea: 80, value: 'DN40' },
-        { maxArea: 220, value: 'DN50' },
-        { maxArea: Infinity, value: 'DN65' },
-      ],
-      drainageDiameterThresholds: [
-        { maxArea: 180, value: 'DN100' },
-        { maxArea: Infinity, value: 'DN150' },
-      ],
       exhaustAirVolumePerSquareMeter: 60,
       greaseTrapCubicMeterPerSquareMeter: 0.035,
     },
   };
+
+  const WATER_DIAMETER_RULES = [
+    { maxArea: 100, includeMaxArea: true, value: 'DN25' },
+    { maxArea: 400, includeMaxArea: false, value: 'DN40' },
+    { maxArea: Infinity, includeMaxArea: true, value: 'DN50' },
+  ];
+
+  const DRAINAGE_DIAMETER_RULES = [
+    { maxArea: 100, includeMaxArea: true, value: 'DN110' },
+    { maxArea: 400, includeMaxArea: false, value: 'DN160' },
+    { maxArea: Infinity, includeMaxArea: true, value: '2条DN160' },
+  ];
 
   function getDiningTypeOptions() {
     return Object.values(DINING_TYPES).map((item) => ({
@@ -80,9 +64,11 @@
     return diningType;
   }
 
-  function findThresholdValue(thresholds, comparableValue, key) {
-    const matched = thresholds.find((item) => comparableValue <= item[key]);
-    return matched ? matched.value : thresholds[thresholds.length - 1].value;
+  function findAreaRuleValue(rules, area) {
+    const matched = rules.find((item) => (
+      item.includeMaxArea ? area <= item.maxArea : area < item.maxArea
+    ));
+    return matched ? matched.value : rules[rules.length - 1].value;
   }
 
   function roundToStep(value, step) {
@@ -133,8 +119,8 @@
       ? options.specifiedDemandKw
       : Math.ceil(area * diningType.demandKwPerSquareMeter);
     const cableSelection = cableTable.selectCableByDemandKw(demandKw);
-    const water = findThresholdValue(diningType.waterDiameterThresholds, area, 'maxArea');
-    const drainage = findThresholdValue(diningType.drainageDiameterThresholds, area, 'maxArea');
+    const water = findAreaRuleValue(WATER_DIAMETER_RULES, area);
+    const drainage = findAreaRuleValue(DRAINAGE_DIAMETER_RULES, area);
     const exhaustAirVolume = roundToStep(area * diningType.exhaustAirVolumePerSquareMeter, 100);
     const greaseTrapVolume = Math.max(
       1,

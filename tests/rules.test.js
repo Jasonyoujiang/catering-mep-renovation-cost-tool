@@ -31,11 +31,27 @@ test('calculates a standard catering MEP plan from area and dining type', () => 
   assert.equal(plan.items.electricalCable.note.includes('Kx=0.9'), true);
   assert.equal(plan.items.electricalCable.note.includes('80.4 A'), true);
   assert.equal(plan.items.water.value, 'DN40');
-  assert.equal(plan.items.drainage.value, 'DN100');
+  assert.equal(plan.items.drainage.value, 'DN160');
   assert.equal(plan.items.exhaust.value, '5400 m3/h');
   assert.equal(plan.items.greaseTrap.value, '3.0 m3');
   assert.ok(plan.risks.some((item) => item.includes('原始供电容量')));
   assert.ok(plan.assumptions.some((item) => item.includes('初步测算')));
+});
+
+test('uses screenshot area tiers for water and drainage pipe reservations', () => {
+  const small = calculateRenovationPlan(100, 'light');
+  const medium = calculateRenovationPlan(300, 'standard');
+  const beforeLarge = calculateRenovationPlan(399.9, 'heavy');
+  const large = calculateRenovationPlan(400, 'standard');
+
+  assert.equal(small.items.water.value, 'DN25');
+  assert.equal(small.items.drainage.value, 'DN110');
+  assert.equal(medium.items.water.value, 'DN40');
+  assert.equal(medium.items.drainage.value, 'DN160');
+  assert.equal(beforeLarge.items.water.value, 'DN40');
+  assert.equal(beforeLarge.items.drainage.value, 'DN160');
+  assert.equal(large.items.water.value, 'DN50');
+  assert.equal(large.items.drainage.value, '2条DN160');
 });
 
 test('uses the user supplied electrical demand when it is specified', () => {
