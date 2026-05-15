@@ -89,6 +89,10 @@
     return Number.isInteger(value) ? `${value} m3/h` : `${value.toFixed(1)} m3/h`;
   }
 
+  function formatCubicMeters(value) {
+    return Number.isInteger(value * 10) ? value.toFixed(1) : value.toFixed(2);
+  }
+
   function formatCableValue(selection) {
     if (selection.isOutOfRange) {
       return selection.recommendedCable;
@@ -122,8 +126,7 @@
     const water = findAreaRuleValue(WATER_DIAMETER_RULES, area);
     const drainage = findAreaRuleValue(DRAINAGE_DIAMETER_RULES, area);
     const exhaustAirVolume = area * diningType.exhaustAirVolumePerSquareMeter;
-    const greaseTrapAreaUnits = Math.ceil(area / 100);
-    const greaseTrapVolume = greaseTrapAreaUnits * diningType.greaseTrapCubicMeterPerHundredSquareMeters;
+    const greaseTrapVolume = (area / 100) * diningType.greaseTrapCubicMeterPerHundredSquareMeters;
 
     return {
       area,
@@ -172,10 +175,10 @@
         },
         greaseTrap: {
           label: '占用隔油池容积',
-          value: `${greaseTrapVolume.toFixed(1)} m3`,
+          value: `${formatCubicMeters(greaseTrapVolume)} m3`,
           numericValue: greaseTrapVolume,
           unit: 'm3',
-          note: `按 ${diningType.greaseTrapCubicMeterPerHundredSquareMeters} m3/100m2 指标计算，不足 100m2 按 100m2 计。`,
+          note: `按 ${diningType.greaseTrapCubicMeterPerHundredSquareMeters} m3/100m2 指标计算，不足 100m2 部分按面积比例计算。`,
         },
       },
       risks: [
