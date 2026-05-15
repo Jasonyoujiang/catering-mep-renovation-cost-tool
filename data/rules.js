@@ -4,7 +4,7 @@
       id: 'light',
       name: '轻餐',
       description: '饮品、烘焙、简餐等低油烟业态',
-      demandKwPerSquareMeter: 0.35,
+      demandKwPerSquareMeter: 0.25,
       waterDiameterThresholds: [
         { maxArea: 120, value: 'DN25' },
         { maxArea: 250, value: 'DN32' },
@@ -21,7 +21,7 @@
       id: 'standard',
       name: '普通餐饮',
       description: '常规正餐、快餐、带基础烹饪的餐饮业态',
-      demandKwPerSquareMeter: 0.5,
+      demandKwPerSquareMeter: 0.4,
       waterDiameterThresholds: [
         { maxArea: 100, value: 'DN32' },
         { maxArea: 250, value: 'DN40' },
@@ -39,7 +39,7 @@
       id: 'heavy',
       name: '重油烟餐饮',
       description: '火锅、烧烤、中餐重油烟等高排烟业态',
-      demandKwPerSquareMeter: 0.65,
+      demandKwPerSquareMeter: 0.5,
       waterDiameterThresholds: [
         { maxArea: 80, value: 'DN40' },
         { maxArea: 220, value: 'DN50' },
@@ -94,10 +94,29 @@
     return Math.ceil(value / step) * step;
   }
 
-  function calculateRenovationPlan(area, diningTypeId) {
+  function assertValidSpecifiedDemand(specifiedDemandKw) {
+    if (specifiedDemandKw === undefined || specifiedDemandKw === null) {
+      return;
+    }
+
+    if (!Number.isFinite(specifiedDemandKw) || specifiedDemandKw <= 0) {
+      throw new Error('指定用电量必须为空，或填写大于 0 的数字');
+    }
+  }
+
+  function formatKw(value) {
+    return Number.isInteger(value) ? `${value} kW` : `${value.toFixed(1)} kW`;
+  }
+
+  function calculateRenovationPlan(area, diningTypeId, options = {}) {
     assertValidArea(area);
     const diningType = getDiningType(diningTypeId);
-    const demandKw = Math.ceil(area * diningType.demandKwPerSquareMeter);
+    assertValidSpecifiedDemand(options.specifiedDemandKw);
+
+    const hasSpecifiedDemand = options.specifiedDemandKw !== undefined && options.specifiedDemandKw !== null;
+    const demandKw = hasSpecifiedDemand
+      ? options.specifiedDemandKw
+      : Math.ceil(area * diningType.demandKwPerSquareMeter);
     const cable = findThresholdValue(CABLE_THRESHOLDS, demandKw, 'maxDemandKw');
     const water = findThresholdValue(diningType.waterDiameterThresholds, area, 'maxArea');
     const drainage = findThresholdValue(diningType.drainageDiameterThresholds, area, 'maxArea');
@@ -117,17 +136,21 @@
       items: {
         electricalLoad: {
           label: '估算用电负荷',
-          value: `${demandKw} kW`,
+          value: formatKw(demandKw),
           numericValue: demandKw,
           unit: 'kW',
-          note: `按 ${diningType.name} ${diningType.demandKwPerSquareMeter} kW/m2 经验系数估算，暂未考虑设备清单和同时使用系数。`,
+          note: hasSpecifiedDemand
+            ? '按手动指定用电量录入，适用于主力店、水吧或已有明确设备需求的商户。'
+            : `按 ${diningType.name} ${diningType.demandKwPerSquareMeter} kW/m2 经验系数估算，暂未考虑设备清单和同时使用系数。`,
         },
         electricalCable: {
           label: '配套电缆规格',
           value: cable,
           numericValue: demandKw,
           unit: '规格',
-          note: `按 ${demandKw} kW 估算负荷匹配，需核实上级开关容量、计量方式和电缆敷设路径。`,
+          note: hasSpecifiedDemand
+            ? `按手动指定用电量 ${formatKw(demandKw)} 匹配，适用于主力店、水吧或已有明确设备需求的商户；需核实上级开关容量、计量方式和电缆敷设路径。`
+            : `按 ${formatKw(demandKw)} 估算负荷匹配，需核实上级开关容量、计量方式和电缆敷设路径。`,
         },
         water: {
           label: '供水管径',

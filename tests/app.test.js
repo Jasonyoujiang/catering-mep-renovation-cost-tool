@@ -6,6 +6,7 @@ global.MepCostCatalog = require('../data/items.js');
 
 const {
   validateAreaInput,
+  validateOptionalDemandInput,
   formatCurrency,
   buildPlanResultRows,
   buildCostResultRows,
@@ -25,6 +26,24 @@ test('rejects blank, zero, and non-number shop area input', () => {
   assert.equal(validateAreaInput('abc').valid, false);
 });
 
+test('validates optional specified electrical demand input', () => {
+  assert.deepEqual(validateOptionalDemandInput(''), {
+    valid: true,
+    value: null,
+    message: '',
+  });
+  assert.deepEqual(validateOptionalDemandInput('90'), {
+    valid: true,
+    value: 90,
+    message: '',
+  });
+  assert.deepEqual(validateOptionalDemandInput('-1'), {
+    valid: false,
+    value: null,
+    message: '指定用电量必须为空，或填写大于 0 的数字。',
+  });
+});
+
 test('formats Chinese currency for cost lookup', () => {
   assert.equal(formatCurrency(18500), '¥18,500');
 });
@@ -34,8 +53,8 @@ test('builds renovation plan rows for table output', () => {
   const rows = buildPlanResultRows(plan);
 
   assert.deepEqual(rows, [
-    ['估算用电负荷', '60 kW', '按 普通餐饮 0.5 kW/m2 经验系数估算，暂未考虑设备清单和同时使用系数。'],
-    ['配套电缆规格', 'YJV-4x70+1x35', '按 60 kW 估算负荷匹配，需核实上级开关容量、计量方式和电缆敷设路径。'],
+    ['估算用电负荷', '48 kW', '按 普通餐饮 0.4 kW/m2 经验系数估算，暂未考虑设备清单和同时使用系数。'],
+    ['配套电缆规格', 'YJV-4x35+1x16', '按 48 kW 估算负荷匹配，需核实上级开关容量、计量方式和电缆敷设路径。'],
     ['供水管径', 'DN40', '需结合厨房用水点、热水系统和原管网压力复核。'],
     ['排水管径', 'DN100', '需复核排水坡度、隔油接入和检修条件。'],
     ['排油烟风量', '5400 m3/h', '按 45 m3/h/m2 的示例系数估算。'],

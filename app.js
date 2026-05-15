@@ -19,6 +19,31 @@
     };
   }
 
+  function validateOptionalDemandInput(value) {
+    if (!value) {
+      return {
+        valid: true,
+        value: null,
+        message: '',
+      };
+    }
+
+    const demand = Number(value);
+    if (!Number.isFinite(demand) || demand <= 0) {
+      return {
+        valid: false,
+        value: null,
+        message: '指定用电量必须为空，或填写大于 0 的数字。',
+      };
+    }
+
+    return {
+      valid: true,
+      value: demand,
+      message: '',
+    };
+  }
+
   function formatCurrency(value) {
     return `¥${Number(value).toLocaleString('zh-CN', { maximumFractionDigits: 0 })}`;
   }
@@ -107,10 +132,12 @@
   function handlePlanSubmit(event) {
     event.preventDefault();
     const areaInput = document.querySelector('[data-area]');
+    const specifiedDemandInput = document.querySelector('[data-specified-demand]');
     const diningTypeSelect = document.querySelector('[data-dining-type]');
     const output = document.querySelector('[data-plan-output]');
     const message = document.querySelector('[data-plan-message]');
     const validation = validateAreaInput(areaInput.value);
+    const demandValidation = validateOptionalDemandInput(specifiedDemandInput.value);
 
     output.innerHTML = '';
 
@@ -119,8 +146,18 @@
       return;
     }
 
-    const plan = rules.calculateRenovationPlan(validation.area, diningTypeSelect.value);
-    setMessage(message, `${plan.diningType.name} ${plan.area} m2 初步改造参数已生成。`, 'success');
+    if (!demandValidation.valid) {
+      setMessage(message, demandValidation.message, 'error');
+      return;
+    }
+
+    const plan = rules.calculateRenovationPlan(validation.area, diningTypeSelect.value, {
+      specifiedDemandKw: demandValidation.value,
+    });
+    const demandMessage = demandValidation.value
+      ? `，电气按指定用电量 ${demandValidation.value} kW 复核`
+      : '';
+    setMessage(message, `${plan.diningType.name} ${plan.area} m2 初步改造参数已生成${demandMessage}。`, 'success');
 
     renderTable(output, 'plan-table', ['子项', '推荐参数', '测算依据 / 复核提示'], buildPlanResultRows(plan));
     renderList(output, '风险提示', plan.risks);
@@ -163,6 +200,7 @@
 
   const api = {
     validateAreaInput,
+    validateOptionalDemandInput,
     formatCurrency,
     buildPlanResultRows,
     buildCostResultRows,
