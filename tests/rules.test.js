@@ -86,6 +86,7 @@ test('calculates exhaust air volume from dining type indicators', () => {
 
 test('calculates grease trap volume from dining type indicators', () => {
   const smallLight = calculateRenovationPlan(50, 'light');
+  const smallStandard = calculateRenovationPlan(50, 'standard');
   const light = calculateRenovationPlan(100, 'light');
   const overOneHundredStandard = calculateRenovationPlan(120, 'standard');
   const standard = calculateRenovationPlan(100, 'standard');
@@ -93,6 +94,7 @@ test('calculates grease trap volume from dining type indicators', () => {
   const partialHundredLight = calculateRenovationPlan(220, 'light');
 
   assert.equal(smallLight.items.greaseTrap.value, '0.25 m3');
+  assert.equal(smallStandard.items.greaseTrap.value, '0.5 m3');
   assert.equal(light.items.greaseTrap.value, '0.5 m3');
   assert.equal(standard.items.greaseTrap.value, '1.0 m3');
   assert.equal(overOneHundredStandard.items.greaseTrap.value, '1.2 m3');
