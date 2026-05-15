@@ -271,6 +271,10 @@ button:active {
   box-shadow: 0 10px 22px rgba(25, 37, 30, 0.05);
 }
 
+.plan-table {
+  table-layout: fixed;
+}
+
 .plan-table th,
 .plan-table td,
 .cost-table th,
@@ -290,19 +294,34 @@ button:active {
   font-size: 14px;
 }
 
-.plan-table th:first-child {
-  width: 124px;
+.plan-table th:first-child,
+.plan-table td:first-child {
+  width: 148px;
+  word-break: keep-all;
 }
 
-.plan-table th:nth-child(2) {
-  width: 230px;
+.plan-table td:first-child {
+  color: var(--ink-strong);
+  font-weight: 760;
+}
+
+.plan-table th:nth-child(2),
+.plan-table td:nth-child(2) {
+  width: 240px;
 }
 
 .plan-table td:nth-child(2) {
   color: var(--ink-strong);
-  font-size: 19px;
+  font-size: 18px;
   font-weight: 850;
-  white-space: nowrap;
+  white-space: normal;
+  word-break: keep-all;
+}
+
+.plan-table td:nth-child(3) {
+  color: #2e3a34;
+  font-size: 14px;
+  line-height: 1.72;
 }
 
 .plan-table tr:last-child td,
@@ -367,11 +386,19 @@ button:active {
     padding: 14px;
   }
 
-  .plan-table th:first-child,
-  .plan-table th:nth-child(2),
   .cost-table th:first-child,
   .cost-table td:first-child {
     width: auto;
+  }
+
+  .plan-table th:first-child,
+  .plan-table td:first-child {
+    width: 148px;
+  }
+
+  .plan-table th:nth-child(2),
+  .plan-table td:nth-child(2) {
+    width: 206px;
   }
 
   .plan-table th,
@@ -383,6 +410,10 @@ button:active {
 
   .plan-table td:nth-child(2) {
     font-size: 17px;
-    white-space: normal;
+  }
+
+  .plan-table td:nth-child(3) {
+    font-size: 13px;
+    line-height: 1.68;
   }
 }
