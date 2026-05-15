@@ -17,7 +17,7 @@
       name: '普通餐饮',
       description: '常规正餐、快餐、带基础烹饪的餐饮业态',
       demandKwPerSquareMeter: 0.4,
-      exhaustAirVolumePerSquareMeter: 45,
+      exhaustAirVolumePerSquareMeter: 32,
       greaseTrapCubicMeterPerSquareMeter: 0.025,
     },
     heavy: {
@@ -25,7 +25,7 @@
       name: '重油烟餐饮',
       description: '火锅、烧烤、中餐重油烟等高排烟业态',
       demandKwPerSquareMeter: 0.5,
-      exhaustAirVolumePerSquareMeter: 60,
+      exhaustAirVolumePerSquareMeter: 37,
       greaseTrapCubicMeterPerSquareMeter: 0.035,
     },
   };
@@ -71,10 +71,6 @@
     return matched ? matched.value : rules[rules.length - 1].value;
   }
 
-  function roundToStep(value, step) {
-    return Math.ceil(value / step) * step;
-  }
-
   function assertValidSpecifiedDemand(specifiedDemandKw) {
     if (specifiedDemandKw === undefined || specifiedDemandKw === null) {
       return;
@@ -87,6 +83,10 @@
 
   function formatKw(value) {
     return Number.isInteger(value) ? `${value} kW` : `${value.toFixed(1)} kW`;
+  }
+
+  function formatAirVolume(value) {
+    return Number.isInteger(value) ? `${value} m3/h` : `${value.toFixed(1)} m3/h`;
   }
 
   function formatCableValue(selection) {
@@ -121,7 +121,7 @@
     const cableSelection = cableTable.selectCableByDemandKw(demandKw);
     const water = findAreaRuleValue(WATER_DIAMETER_RULES, area);
     const drainage = findAreaRuleValue(DRAINAGE_DIAMETER_RULES, area);
-    const exhaustAirVolume = roundToStep(area * diningType.exhaustAirVolumePerSquareMeter, 100);
+    const exhaustAirVolume = area * diningType.exhaustAirVolumePerSquareMeter;
     const greaseTrapVolume = Math.max(
       1,
       Math.ceil(area * diningType.greaseTrapCubicMeterPerSquareMeter * 10) / 10
@@ -167,10 +167,10 @@
         },
         exhaust: {
           label: '排油烟风量',
-          value: `${exhaustAirVolume} m3/h`,
+          value: formatAirVolume(exhaustAirVolume),
           numericValue: exhaustAirVolume,
           unit: 'm3/h',
-          note: `按 ${diningType.exhaustAirVolumePerSquareMeter} m3/h/m2 的示例系数估算。`,
+          note: `按 ${diningType.exhaustAirVolumePerSquareMeter} m3/h/m2 指标计算。`,
         },
         greaseTrap: {
           label: '占用隔油池容积',
