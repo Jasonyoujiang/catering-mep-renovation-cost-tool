@@ -1,0 +1,80 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>餐饮商铺机电改造方案与成本测算</title>
+    <link rel="stylesheet" href="styles.css">
+  </head>
+  <body>
+    <main class="app-shell">
+      <header class="app-header">
+        <div>
+          <p class="eyebrow">商业项目机电管理工具</p>
+          <h1>餐饮商铺机电改造方案与成本测算</h1>
+        </div>
+        <p class="header-note">第一版为管理测算框架，计算逻辑和价格资料可逐步扩展。</p>
+      </header>
+
+      <section class="workspace" aria-label="餐饮商铺机电改造工具">
+        <article class="panel">
+          <div class="panel__header">
+            <span>01</span>
+            <div>
+              <h2>改造方案生成</h2>
+              <p>输入面积和餐饮类型，生成第一批机电配置参数。</p>
+            </div>
+          </div>
+
+          <form class="form-grid" data-plan-form>
+            <label>
+              <span>商铺面积</span>
+              <input data-area type="number" min="1" step="0.1" placeholder="例如 120">
+            </label>
+            <label>
+              <span>餐饮类型</span>
+              <select data-dining-type></select>
+            </label>
+            <button type="submit">生成方案</button>
+          </form>
+
+          <p class="form-message" data-plan-message data-tone="neutral"></p>
+          <div class="output-stack" data-plan-output></div>
+        </article>
+
+        <article class="panel">
+          <div class="panel__header">
+            <span>02</span>
+            <div>
+              <h2>机电改造成本查询</h2>
+              <p>通过两级菜单查询子项规格和参考造价。</p>
+            </div>
+          </div>
+
+          <form class="form-grid" data-cost-form>
+            <label>
+              <span>造价子项</span>
+              <select data-cost-category>
+                <option value="">请选择子项</option>
+              </select>
+            </label>
+            <label>
+              <span>规格型号</span>
+              <select data-cost-specification disabled>
+                <option value="">请选择规格型号</option>
+              </select>
+            </label>
+            <button type="submit">查询造价</button>
+          </form>
+
+          <p class="form-message" data-cost-message data-tone="neutral"></p>
+          <div class="output-stack" data-cost-output></div>
+        </article>
+      </section>
+    </main>
+
+    <script src="data/rules.js"></script>
+    <script src="data/items.js"></script>
+    <script src="app.js"></script>
+  </body>
+</html>
