@@ -10,7 +10,7 @@
       description: '饮品、烘焙、简餐等低油烟业态',
       demandKwPerSquareMeter: 0.25,
       exhaustAirVolumePerSquareMeter: 25,
-      greaseTrapCubicMeterPerSquareMeter: 0.015,
+      greaseTrapCubicMeterPerSquareMeter: 0.005,
     },
     standard: {
       id: 'standard',
@@ -18,7 +18,7 @@
       description: '常规正餐、快餐、带基础烹饪的餐饮业态',
       demandKwPerSquareMeter: 0.4,
       exhaustAirVolumePerSquareMeter: 32,
-      greaseTrapCubicMeterPerSquareMeter: 0.025,
+      greaseTrapCubicMeterPerSquareMeter: 0.01,
     },
     heavy: {
       id: 'heavy',
@@ -26,7 +26,7 @@
       description: '火锅、烧烤、中餐重油烟等高排烟业态',
       demandKwPerSquareMeter: 0.5,
       exhaustAirVolumePerSquareMeter: 37,
-      greaseTrapCubicMeterPerSquareMeter: 0.035,
+      greaseTrapCubicMeterPerSquareMeter: 0.015,
     },
   };
 
@@ -89,6 +89,10 @@
     return Number.isInteger(value) ? `${value} m3/h` : `${value.toFixed(1)} m3/h`;
   }
 
+  function formatGreaseTrapIndicator(value) {
+    return Number.isInteger(value) ? String(value) : value.toFixed(1);
+  }
+
   function formatCableValue(selection) {
     if (selection.isOutOfRange) {
       return selection.recommendedCable;
@@ -122,10 +126,8 @@
     const water = findAreaRuleValue(WATER_DIAMETER_RULES, area);
     const drainage = findAreaRuleValue(DRAINAGE_DIAMETER_RULES, area);
     const exhaustAirVolume = area * diningType.exhaustAirVolumePerSquareMeter;
-    const greaseTrapVolume = Math.max(
-      1,
-      Math.ceil(area * diningType.greaseTrapCubicMeterPerSquareMeter * 10) / 10
-    );
+    const greaseTrapVolume = Math.ceil(area * diningType.greaseTrapCubicMeterPerSquareMeter * 10) / 10;
+    const greaseTrapIndicator = diningType.greaseTrapCubicMeterPerSquareMeter * 100;
 
     return {
       area,
@@ -177,7 +179,7 @@
           value: `${greaseTrapVolume.toFixed(1)} m3`,
           numericValue: greaseTrapVolume,
           unit: 'm3',
-          note: '需结合既有隔油池总容量、服务商户数量和清掏频次复核。',
+          note: `按 ${formatGreaseTrapIndicator(greaseTrapIndicator)} m3/100m2 指标计算，结果向上取 0.1 m3。`,
         },
       },
       risks: [
