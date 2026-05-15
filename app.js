@@ -68,17 +68,32 @@
     return `¥${Number(value).toLocaleString('zh-CN', { maximumFractionDigits: 0 })}`;
   }
 
+  function formatCostAmount(item) {
+    if (Array.isArray(item.priceRange)) {
+      return {
+        label: '参考价格区间',
+        value: `${formatCurrency(item.priceRange[0])}-${formatCurrency(item.priceRange[1])}`,
+      };
+    }
+
+    return {
+      label: '参考单价',
+      value: formatCurrency(item.price),
+    };
+  }
+
   function buildPlanResultRows(plan) {
     return Object.values(plan.items).map((item) => [item.label, item.value, item.note]);
   }
 
   function buildCostResultRows(categoryId, specificationId) {
     const item = catalog.findCostItem(categoryId, specificationId);
+    const priceRow = formatCostAmount(item);
     return [
       ['子项名称', item.categoryName],
       ['规格型号', item.name],
       ['计量单位', item.unit],
-      ['参考单价', formatCurrency(item.price)],
+      [priceRow.label, priceRow.value],
       ['价格说明', item.remark],
     ];
   }

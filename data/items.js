@@ -1,4 +1,46 @@
 (function attachCostCatalog(global) {
+  const AIR_VOLUME_PRICE_LIST = [
+    { airVolume: 4000, purifierRange: [3200, 4000], fanRange: [7000, 9000] },
+    { airVolume: 6000, purifierRange: [4800, 6000], fanRange: [8000, 11000] },
+    { airVolume: 8000, purifierRange: [6400, 8000], fanRange: [10000, 14000] },
+    { airVolume: 10000, purifierRange: [8000, 10000], fanRange: [12000, 18000] },
+    { airVolume: 12000, purifierRange: [9600, 12000], fanRange: [14000, 20000] },
+    { airVolume: 14000, purifierRange: [11200, 14000], fanRange: [16000, 22000] },
+    { airVolume: 16000, purifierRange: [12800, 16000], fanRange: [18000, 24000] },
+    { airVolume: 18000, purifierRange: [14400, 18000], fanRange: [20000, 26000] },
+    { airVolume: 20000, purifierRange: [16000, 20000], fanRange: [22000, 28000] },
+    { airVolume: 22000, purifierRange: [17600, 22000], fanRange: [24000, 30000] },
+    { airVolume: 24000, purifierRange: [19200, 24000], fanRange: [26000, 32000] },
+    { airVolume: 26000, purifierRange: [20800, 26000], fanRange: [28000, 34000] },
+    { airVolume: 28000, purifierRange: [22400, 28000], fanRange: [30000, 36000] },
+    { airVolume: 30000, purifierRange: [24000, 30000], fanRange: [32000, 38000] },
+    { airVolume: 32000, purifierRange: [25600, 32000], fanRange: [33000, 39000] },
+    { airVolume: 34000, purifierRange: [27200, 34000], fanRange: [34000, 40000] },
+    { airVolume: 36000, purifierRange: [28800, 36000], fanRange: [35000, 41000] },
+    { airVolume: 38000, purifierRange: [30400, 38000], fanRange: [36000, 42000] },
+    { airVolume: 40000, purifierRange: [32000, 40000], fanRange: [35000, 45000] },
+    { airVolume: 42000, purifierRange: [33600, 42000], fanRange: [36000, 46000] },
+    { airVolume: 44000, purifierRange: [35200, 44000], fanRange: [37000, 47000] },
+    { airVolume: 46000, purifierRange: [36800, 46000], fanRange: [38000, 48000] },
+    { airVolume: 48000, purifierRange: [38400, 48000], fanRange: [39000, 49000] },
+    { airVolume: 50000, purifierRange: [40000, 50000], fanRange: [40000, 50000] },
+    { airVolume: 52000, purifierRange: [41600, 52000], fanRange: [41000, 51000] },
+    { airVolume: 54000, purifierRange: [43200, 54000], fanRange: [42000, 52000] },
+    { airVolume: 56000, purifierRange: [44800, 56000], fanRange: [43000, 53000] },
+    { airVolume: 58000, purifierRange: [46400, 58000], fanRange: [44000, 54000] },
+    { airVolume: 60000, purifierRange: [48000, 60000], fanRange: [45000, 55000] },
+  ];
+
+  function createAirVolumeSpecifications(prefix, namePrefix, rangeKey, remark) {
+    return AIR_VOLUME_PRICE_LIST.map((item) => ({
+      id: `${prefix}-${item.airVolume}`,
+      name: `${namePrefix} ${item.airVolume} m3/h`,
+      unit: '台',
+      priceRange: item[rangeKey],
+      remark,
+    }));
+  }
+
   const COST_CATALOG = {
     cable: {
       id: 'cable',
@@ -73,30 +115,24 @@
     exhaustFan: {
       id: 'exhaustFan',
       name: '排油烟风机',
-      description: '餐饮排油烟风机参考单价',
-      specifications: [
-        {
-          id: 'fan-8000',
-          name: '排油烟风机 8000 m3/h',
-          unit: '台',
-          price: 9800,
-          remark: '样例参考价，不含油烟净化器、减振、消声和控制箱。',
-        },
-        {
-          id: 'fan-15000',
-          name: '排油烟风机 15000 m3/h',
-          unit: '台',
-          price: 18500,
-          remark: '样例参考价，需结合风压、噪声、安装位置和品牌复核。',
-        },
-        {
-          id: 'fan-25000',
-          name: '排油烟风机 25000 m3/h',
-          unit: '台',
-          price: 32500,
-          remark: '样例参考价，大风量系统需同步复核井道和补风条件。',
-        },
-      ],
+      description: '低噪音柜式离心油烟风机参考价格区间',
+      specifications: createAirVolumeSpecifications(
+        'fan',
+        '排油烟风机',
+        'fanRange',
+        '低噪音柜式离心油烟风机参考区间，满足商场噪音标准≤65dB；不含安装、运输及税费。'
+      ),
+    },
+    oilSmokePurifier: {
+      id: 'oilSmokePurifier',
+      name: '油烟净化器',
+      description: '基础功能低空排放油烟净化器参考价格区间',
+      specifications: createAirVolumeSpecifications(
+        'purifier',
+        '油烟净化器',
+        'purifierRange',
+        '基础功能低空排放油烟净化器参考区间，净化效率≥95%；不含安装、运输及税费。'
+      ),
     },
   };
 

@@ -81,13 +81,13 @@ test('builds renovation plan rows for table output', () => {
 });
 
 test('builds cost result rows from a selected category and specification', () => {
-  const rows = buildCostResultRows('exhaustFan', 'fan-15000');
+  const rows = buildCostResultRows('exhaustFan', 'fan-10000');
 
   assert.deepEqual(rows, [
     ['子项名称', '排油烟风机'],
-    ['规格型号', '排油烟风机 15000 m3/h'],
+    ['规格型号', '排油烟风机 10000 m3/h'],
     ['计量单位', '台'],
-    ['参考单价', '¥18,500'],
-    ['价格说明', '样例参考价，需结合风压、噪声、安装位置和品牌复核。'],
+    ['参考价格区间', '¥12,000-¥18,000'],
+    ['价格说明', '低噪音柜式离心油烟风机参考区间，满足商场噪音标准≤65dB；不含安装、运输及税费。'],
   ]);
 });
