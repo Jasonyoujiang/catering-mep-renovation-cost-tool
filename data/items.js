@@ -52,6 +52,16 @@
     { airVolume: 60000, purifierRange: [48000, 60000], fanRange: [45000, 55000] },
   ];
 
+  const STAINLESS_DUCT_PRICE_LIST = [
+    { thickness: '0.5mm', bareRange: [160, 200], installedRange: [280, 350], scene: '小型低压通风支管，适配长边≤320mm 的小尺寸风管' },
+    { thickness: '0.6mm', bareRange: [180, 220], installedRange: [300, 380], scene: '中小尺寸低压通风支管，普通新风系统支管' },
+    { thickness: '0.8mm', bareRange: [200, 250], installedRange: [320, 400], scene: '中低压系统，适配长边≤630mm 的中等尺寸风管' },
+    { thickness: '1.0mm', bareRange: [220, 280], installedRange: [350, 450], scene: '常规主风管，中压系统，大部分民用暖通项目的主流选择' },
+    { thickness: '1.2mm', bareRange: [280, 330], installedRange: [400, 500], scene: '中高压系统，适配长边≤1000mm 的大尺寸风管' },
+    { thickness: '1.5mm', bareRange: [330, 400], installedRange: [450, 580], scene: '高压系统、厨房排烟风管，适配长边≤2000mm 的大尺寸主风管' },
+    { thickness: '2.0mm', bareRange: [420, 500], installedRange: [550, 700], scene: '高压/高温/高腐蚀工业场景，超大尺寸特殊风管' },
+  ];
+
   function createAirVolumeSpecifications(prefix, namePrefix, rangeKey, remark) {
     return AIR_VOLUME_PRICE_LIST.map((item) => ({
       id: `${prefix}-${item.airVolume}`,
@@ -91,6 +101,16 @@
     return [...singleRunSpecifications, ...doubleRunSpecifications];
   }
 
+  function createStainlessDuctSpecifications() {
+    return STAINLESS_DUCT_PRICE_LIST.map((item) => ({
+      id: `sus-duct-${item.thickness.replace('.', '-').replace('mm', '')}`,
+      name: `304不锈钢矩形风管 ${item.thickness}`,
+      unit: 'm2',
+      priceRange: item.installedRange,
+      remark: `制作安装全包价，含加工、运输、安装；裸管成品价约 ¥${item.bareRange[0]}-¥${item.bareRange[1]}/m2。适用场景：${item.scene}。`,
+    }));
+  }
+
   const COST_CATALOG = {
     cable: {
       id: 'cable',
@@ -101,23 +121,8 @@
     stainlessDuct: {
       id: 'stainlessDuct',
       name: '不锈钢风管',
-      description: '排油烟不锈钢风管参考单价',
-      specifications: [
-        {
-          id: 'sus-duct-1-0',
-          name: '不锈钢风管 1.0mm',
-          unit: 'm2',
-          price: 520,
-          remark: '样例参考价，需结合板厚、法兰、保温、防火包覆和安装高度复核。',
-        },
-        {
-          id: 'sus-duct-1-2',
-          name: '不锈钢风管 1.2mm',
-          unit: 'm2',
-          price: 620,
-          remark: '样例参考价，适用于较高耐腐蚀或管理标准场景。',
-        },
-      ],
+      description: '304 不锈钢矩形风管制作安装全包价参考区间',
+      specifications: createStainlessDuctSpecifications(),
     },
     galvanizedDuct: {
       id: 'galvanizedDuct',

@@ -74,6 +74,19 @@ test('finds oil smoke purifier cost ranges from the supplied price list', () => 
   assert.ok(item.remark.includes('净化效率'));
 });
 
+test('uses supplied 304 stainless duct full-service cost ranges', () => {
+  const specs = getSpecificationsForCategory('stainlessDuct');
+  const item = findCostItem('stainlessDuct', 'sus-duct-1-0');
+
+  assert.equal(specs.length, 7);
+  assert.equal(item.categoryName, '不锈钢风管');
+  assert.equal(item.name, '304不锈钢矩形风管 1.0mm');
+  assert.equal(item.unit, 'm2');
+  assert.deepEqual(item.priceRange, [350, 450]);
+  assert.ok(item.remark.includes('裸管成品价约 ¥220-¥280/m2'));
+  assert.ok(item.remark.includes('常规主风管'));
+});
+
 test('throws clear errors for unknown category or specification', () => {
   assert.throws(() => getSpecificationsForCategory('unknown'), /造价子项/);
   assert.throws(() => findCostItem('cable', 'missing'), /规格型号/);
