@@ -464,7 +464,7 @@
   }
 
   function buildBatchPreviewRows(rows) {
-    return rows.slice(0, 8).map((row) => [
+    return rows.slice(0, 5).map((row) => [
       row.商铺编号,
       row.楼层,
       row.业态类型,

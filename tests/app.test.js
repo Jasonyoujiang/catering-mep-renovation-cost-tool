@@ -11,6 +11,7 @@ const {
   formatCurrency,
   buildPlanResultRows,
   buildCostResultRows,
+  buildBatchPreviewRows,
   getTemplateColumnWidth,
   getResultColumnWidth,
   applyTemplateCellStyle,
@@ -106,6 +107,23 @@ test('sets wider Excel result widths for measurement notes', () => {
   assert.equal(getResultColumnWidth('测算依据'), 64);
   assert.equal(getResultColumnWidth('错误说明'), 36);
   assert.equal(getResultColumnWidth('商铺编号'), 14);
+});
+
+test('limits the batch preview table to five rows', () => {
+  const rows = Array.from({ length: 6 }, (_, index) => ({
+    商铺编号: `L1-${String(index + 1).padStart(3, '0')}`,
+    楼层: 'L1',
+    业态类型: '普通餐饮',
+    面积: 100,
+    估算用电负荷: '40 kW',
+    配套电缆规格: 'YJV 4×25+1×16mm²',
+    处理状态: '成功',
+  }));
+
+  const previewRows = buildBatchPreviewRows(rows);
+
+  assert.equal(previewRows.length, 5);
+  assert.equal(previewRows.at(-1)[0], 'L1-005');
 });
 
 test('applies centered and colored styles to Excel template cells', () => {
