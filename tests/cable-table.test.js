@@ -28,9 +28,12 @@ test('selects the exact cable table row when demand matches a rating', () => {
 });
 
 test('uses 5x6 cable for calculated demand within 15 kW', () => {
+  const minimumSelection = selectCableByDemandKw(1);
   const roundedSelection = selectCableByDemandKw(12);
   const exactSelection = selectCableByDemandKw(15);
 
+  assert.equal(minimumSelection.ratedPowerKw, 15);
+  assert.equal(minimumSelection.recommendedCable, '5×6mm²');
   assert.equal(roundedSelection.ratedPowerKw, 15);
   assert.equal(roundedSelection.recommendedCable, '5×6mm²');
   assert.equal(exactSelection.ratedPowerKw, 15);
@@ -55,7 +58,7 @@ test('formats YJV cable specifications as four-plus-one five-core cables', () =>
 });
 
 test('keeps the full source table available for extension', () => {
-  assert.equal(CABLE_SELECTION_TABLE.length, 76);
-  assert.equal(CABLE_SELECTION_TABLE[0].ratedPowerKw, 10);
+  assert.equal(CABLE_SELECTION_TABLE.length, 75);
+  assert.equal(CABLE_SELECTION_TABLE[0].ratedPowerKw, 15);
   assert.equal(CABLE_SELECTION_TABLE.at(-1).ratedPowerKw, 500);
 });

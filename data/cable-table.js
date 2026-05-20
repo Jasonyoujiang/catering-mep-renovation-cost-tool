@@ -1,6 +1,5 @@
 (function attachCableTable(global) {
   const CABLE_SELECTION_TABLE = [
-    { ratedPowerKw: 10, coefficientKx: 1, calculatedCurrentA: 17.9, recommendedCable: '5×6mm²' },
     { ratedPowerKw: 15, coefficientKx: 1, calculatedCurrentA: 26.8, recommendedCable: '5×6mm²' },
     { ratedPowerKw: 20, coefficientKx: 1, calculatedCurrentA: 35.8, recommendedCable: '3×10mm²' },
     { ratedPowerKw: 25, coefficientKx: 1, calculatedCurrentA: 44.7, recommendedCable: '3×10mm²' },
