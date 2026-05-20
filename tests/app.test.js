@@ -11,6 +11,8 @@ const {
   formatCurrency,
   buildPlanResultRows,
   buildCostResultRows,
+  getTemplateColumnWidth,
+  applyTemplateCellStyle,
 } = require('../app.js');
 
 test('validates a positive shop area input', () => {
@@ -91,4 +93,29 @@ test('builds cost result rows from a selected category and specification', () =>
     ['参考单价', '¥519.64'],
     ['价格说明', 'YJV 0.6/1kV 国标含税中价位每米成本×1.4综合系数，系数考虑人工和配件；不含复杂桥架、拆改、夜间施工及铜价波动。'],
   ]);
+});
+
+test('sets readable Excel template column widths for long headers', () => {
+  assert.equal(getTemplateColumnWidth('商铺编号'), 14);
+  assert.equal(getTemplateColumnWidth('是否启用指定用电量'), 22);
+  assert.equal(getTemplateColumnWidth('未知字段'), 14);
+});
+
+test('applies centered and colored styles to Excel template cells', () => {
+  const headerCell = {};
+  const bodyCell = {};
+
+  applyTemplateCellStyle(headerCell, { isHeader: true });
+  applyTemplateCellStyle(bodyCell, { fillColor: 'FFF8FAF7' });
+
+  assert.deepEqual(headerCell.alignment, {
+    horizontal: 'center',
+    vertical: 'middle',
+    wrapText: true,
+  });
+  assert.equal(headerCell.font.bold, true);
+  assert.equal(headerCell.font.color.argb, 'FFFFFFFF');
+  assert.equal(headerCell.fill.fgColor.argb, 'FF14513F');
+  assert.equal(bodyCell.fill.fgColor.argb, 'FFF8FAF7');
+  assert.equal(bodyCell.font.name, 'Microsoft YaHei');
 });

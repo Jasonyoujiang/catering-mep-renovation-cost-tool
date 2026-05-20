@@ -243,6 +243,14 @@
     return global.XLSX;
   }
 
+  function requireStyledWorkbookLibrary() {
+    if (!global.ExcelJS) {
+      throw new Error('Excel 模板美化组件未加载，请检查网络后刷新页面。');
+    }
+
+    return global.ExcelJS;
+  }
+
   function createTimestamp() {
     const now = new Date();
     const pad = (value) => String(value).padStart(2, '0');
@@ -265,6 +273,129 @@
     }));
     xlsx.utils.book_append_sheet(workbook, worksheet, sheetName);
     xlsx.writeFile(workbook, fileName);
+  }
+
+  function getTemplateColumnWidth(header) {
+    const widthMap = {
+      商铺编号: 14,
+      楼层: 10,
+      业态类型: 14,
+      面积: 12,
+      是否启用指定用电量: 22,
+      指定用电量: 14,
+    };
+
+    return widthMap[header] || 14;
+  }
+
+  function applyTemplateCellStyle(cell, options = {}) {
+    const fillColor = options.isHeader ? 'FF14513F' : options.fillColor;
+
+    cell.alignment = {
+      horizontal: 'center',
+      vertical: 'middle',
+      wrapText: true,
+    };
+    cell.border = {
+      top: { style: 'thin', color: { argb: 'FFD7DDD4' } },
+      left: { style: 'thin', color: { argb: 'FFD7DDD4' } },
+      bottom: { style: 'thin', color: { argb: 'FFD7DDD4' } },
+      right: { style: 'thin', color: { argb: 'FFD7DDD4' } },
+    };
+
+    if (fillColor) {
+      cell.fill = {
+        type: 'pattern',
+        pattern: 'solid',
+        fgColor: { argb: fillColor },
+      };
+    }
+
+    if (options.isHeader) {
+      cell.font = {
+        name: 'Microsoft YaHei',
+        color: { argb: 'FFFFFFFF' },
+        bold: true,
+        size: 12,
+      };
+    } else {
+      cell.font = {
+        name: 'Microsoft YaHei',
+        color: { argb: 'FF15201A' },
+        size: 11,
+      };
+    }
+  }
+
+  function createStyledTemplateWorkbook(ExcelJS, rows, headers, sheetName) {
+    const workbook = new ExcelJS.Workbook();
+    workbook.creator = '商铺机电改造方案与成本测算程序';
+    workbook.created = new Date();
+
+    const worksheet = workbook.addWorksheet(sheetName, {
+      views: [{ state: 'frozen', ySplit: 1 }],
+      properties: { tabColor: { argb: 'FF14513F' } },
+    });
+    worksheet.columns = headers.map((header) => ({
+      header,
+      key: header,
+      width: getTemplateColumnWidth(header),
+    }));
+    worksheet.autoFilter = {
+      from: 'A1',
+      to: `${String.fromCharCode(64 + headers.length)}1`,
+    };
+
+    rows.forEach((row) => worksheet.addRow(row));
+
+    const headerRow = worksheet.getRow(1);
+    headerRow.height = 30;
+    headerRow.eachCell((cell) => applyTemplateCellStyle(cell, { isHeader: true }));
+
+    for (let rowNumber = 2; rowNumber <= rows.length + 1; rowNumber += 1) {
+      const row = worksheet.getRow(rowNumber);
+      row.height = 26;
+      row.eachCell((cell) => {
+        applyTemplateCellStyle(cell, {
+          fillColor: rowNumber % 2 === 0 ? 'FFF8FAF7' : 'FFFFFFFF',
+        });
+      });
+    }
+
+    worksheet.dataValidations.add('C2:C500', {
+      type: 'list',
+      allowBlank: false,
+      formulae: ['"轻餐,普通餐饮,重油烟餐饮,零售,生活服务,超市"'],
+    });
+    worksheet.dataValidations.add('E2:E500', {
+      type: 'list',
+      allowBlank: false,
+      formulae: ['"是,否"'],
+    });
+
+    return workbook;
+  }
+
+  function downloadWorkbookBuffer(buffer, fileName) {
+    const blob = new Blob([buffer], {
+      type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+    });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = fileName;
+    document.body.appendChild(link);
+    link.click();
+    link.remove();
+    URL.revokeObjectURL(url);
+  }
+
+  async function writeStyledTemplateFile(rows, headers, sheetName, fileName) {
+    const ExcelJS = requireStyledWorkbookLibrary();
+    const workbook = createStyledTemplateWorkbook(ExcelJS, rows, headers, sheetName);
+
+    const buffer = await workbook.xlsx.writeBuffer();
+    downloadWorkbookBuffer(buffer, fileName);
   }
 
   function readExcelRows(file) {
@@ -299,11 +430,11 @@
     ]);
   }
 
-  function handleTemplateDownload() {
+  async function handleTemplateDownload() {
     const message = document.querySelector('[data-batch-message]');
 
     try {
-      writeExcelFile(
+      await writeStyledTemplateFile(
         batch.createTemplateRows(),
         batch.BATCH_TEMPLATE_HEADERS,
         '商铺基础信息',
@@ -385,6 +516,9 @@
     resolveSpecifiedDemand,
     formatCurrency,
     escapeHtml,
+    getTemplateColumnWidth,
+    applyTemplateCellStyle,
+    createStyledTemplateWorkbook,
     buildPlanResultRows,
     buildCostResultRows,
     buildBatchPreviewRows,
