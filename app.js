@@ -245,7 +245,7 @@
 
   function requireStyledWorkbookLibrary() {
     if (!global.ExcelJS) {
-      throw new Error('Excel 模板美化组件未加载，请检查网络后刷新页面。');
+      throw new Error('Excel 美化组件未加载，请检查网络后刷新页面。');
     }
 
     return global.ExcelJS;
@@ -288,6 +288,28 @@
     return widthMap[header] || 14;
   }
 
+  function getResultColumnWidth(header) {
+    const widthMap = {
+      商铺编号: 14,
+      楼层: 10,
+      业态类型: 14,
+      面积: 12,
+      是否启用指定用电量: 22,
+      指定用电量: 14,
+      估算用电负荷: 16,
+      配套电缆规格: 24,
+      供水管径: 14,
+      排水管径: 14,
+      排油烟风量: 16,
+      占用隔油池容积: 18,
+      测算依据: 64,
+      处理状态: 12,
+      错误说明: 36,
+    };
+
+    return widthMap[header] || getTemplateColumnWidth(header);
+  }
+
   function applyTemplateCellStyle(cell, options = {}) {
     const fillColor = options.isHeader ? 'FF14513F' : options.fillColor;
 
@@ -327,7 +349,7 @@
     }
   }
 
-  function createStyledTemplateWorkbook(ExcelJS, rows, headers, sheetName) {
+  function createStyledWorkbook(ExcelJS, rows, headers, sheetName, options = {}) {
     const workbook = new ExcelJS.Workbook();
     workbook.creator = '商铺机电改造方案与成本测算程序';
     workbook.created = new Date();
@@ -339,7 +361,7 @@
     worksheet.columns = headers.map((header) => ({
       header,
       key: header,
-      width: getTemplateColumnWidth(header),
+      width: options.getColumnWidth ? options.getColumnWidth(header) : getTemplateColumnWidth(header),
     }));
     worksheet.autoFilter = {
       from: 'A1',
@@ -362,18 +384,33 @@
       });
     }
 
-    worksheet.dataValidations.add('C2:C500', {
-      type: 'list',
-      allowBlank: false,
-      formulae: ['"轻餐,普通餐饮,重油烟餐饮,零售,生活服务,超市"'],
-    });
-    worksheet.dataValidations.add('E2:E500', {
-      type: 'list',
-      allowBlank: false,
-      formulae: ['"是,否"'],
-    });
+    if (options.withTemplateValidations) {
+      worksheet.dataValidations.add('C2:C500', {
+        type: 'list',
+        allowBlank: false,
+        formulae: ['"轻餐,普通餐饮,重油烟餐饮,零售,生活服务,超市"'],
+      });
+      worksheet.dataValidations.add('E2:E500', {
+        type: 'list',
+        allowBlank: false,
+        formulae: ['"是,否"'],
+      });
+    }
 
     return workbook;
+  }
+
+  function createStyledTemplateWorkbook(ExcelJS, rows, headers, sheetName) {
+    return createStyledWorkbook(ExcelJS, rows, headers, sheetName, {
+      getColumnWidth: getTemplateColumnWidth,
+      withTemplateValidations: true,
+    });
+  }
+
+  function createStyledResultWorkbook(ExcelJS, rows, headers, sheetName) {
+    return createStyledWorkbook(ExcelJS, rows, headers, sheetName, {
+      getColumnWidth: getResultColumnWidth,
+    });
   }
 
   function downloadWorkbookBuffer(buffer, fileName) {
@@ -393,6 +430,14 @@
   async function writeStyledTemplateFile(rows, headers, sheetName, fileName) {
     const ExcelJS = requireStyledWorkbookLibrary();
     const workbook = createStyledTemplateWorkbook(ExcelJS, rows, headers, sheetName);
+
+    const buffer = await workbook.xlsx.writeBuffer();
+    downloadWorkbookBuffer(buffer, fileName);
+  }
+
+  async function writeStyledResultFile(rows, headers, sheetName, fileName) {
+    const ExcelJS = requireStyledWorkbookLibrary();
+    const workbook = createStyledResultWorkbook(ExcelJS, rows, headers, sheetName);
 
     const buffer = await workbook.xlsx.writeBuffer();
     downloadWorkbookBuffer(buffer, fileName);
@@ -470,7 +515,7 @@
       const failedCount = resultRows.length - successCount;
       const fileName = `商铺机电条件批量测算结果-${createTimestamp()}.xlsx`;
 
-      writeExcelFile(resultRows, batch.BATCH_OUTPUT_HEADERS, '机电条件测算结果', fileName);
+      await writeStyledResultFile(resultRows, batch.BATCH_OUTPUT_HEADERS, '机电条件测算结果', fileName);
       renderTable(
         output,
         'batch-table',
@@ -517,8 +562,11 @@
     formatCurrency,
     escapeHtml,
     getTemplateColumnWidth,
+    getResultColumnWidth,
     applyTemplateCellStyle,
+    createStyledWorkbook,
     createStyledTemplateWorkbook,
+    createStyledResultWorkbook,
     buildPlanResultRows,
     buildCostResultRows,
     buildBatchPreviewRows,

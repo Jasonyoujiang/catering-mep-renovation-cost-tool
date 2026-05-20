@@ -12,6 +12,7 @@ const {
   buildPlanResultRows,
   buildCostResultRows,
   getTemplateColumnWidth,
+  getResultColumnWidth,
   applyTemplateCellStyle,
 } = require('../app.js');
 
@@ -99,6 +100,12 @@ test('sets readable Excel template column widths for long headers', () => {
   assert.equal(getTemplateColumnWidth('商铺编号'), 14);
   assert.equal(getTemplateColumnWidth('是否启用指定用电量'), 22);
   assert.equal(getTemplateColumnWidth('未知字段'), 14);
+});
+
+test('sets wider Excel result widths for measurement notes', () => {
+  assert.equal(getResultColumnWidth('测算依据'), 64);
+  assert.equal(getResultColumnWidth('错误说明'), 36);
+  assert.equal(getResultColumnWidth('商铺编号'), 14);
 });
 
 test('applies centered and colored styles to Excel template cells', () => {
