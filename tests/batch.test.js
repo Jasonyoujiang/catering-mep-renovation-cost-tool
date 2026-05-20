@@ -39,6 +39,9 @@ test('resolves supported business type names for batch import', () => {
   assert.equal(resolveDiningTypeId('普通餐饮'), 'standard');
   assert.equal(resolveDiningTypeId('重油烟餐饮'), 'heavy');
   assert.equal(resolveDiningTypeId('重餐'), 'heavy');
+  assert.equal(resolveDiningTypeId('零售'), 'retail');
+  assert.equal(resolveDiningTypeId('生活服务'), 'service');
+  assert.equal(resolveDiningTypeId('超市'), 'supermarket');
 });
 
 test('builds batch MEP condition rows from uploaded shop records', () => {
@@ -77,6 +80,37 @@ test('builds batch MEP condition rows from uploaded shop records', () => {
 
   assert.equal(rows[1].估算用电负荷, '90 kW');
   assert.equal(rows[1].测算依据.includes('手动指定用电量'), true);
+});
+
+test('builds non-catering batch rows with only electrical conditions filled', () => {
+  const rows = buildBatchPlanRows([
+    {
+      商铺编号: 'L3-301',
+      楼层: 'L3',
+      业态类型: '零售',
+      面积: 200,
+      是否启用指定用电量: '否',
+      指定用电量: '',
+    },
+    {
+      商铺编号: 'B1-101',
+      楼层: 'B1',
+      业态类型: '超市',
+      面积: 200,
+      是否启用指定用电量: '否',
+      指定用电量: '',
+    },
+  ]);
+
+  assert.equal(rows[0].估算用电负荷, '24 kW');
+  assert.equal(rows[0].配套电缆规格, 'YJV 4×10+1×6mm²');
+  assert.equal(rows[0].供水管径, '');
+  assert.equal(rows[0].排水管径, '');
+  assert.equal(rows[0].排油烟风量, '');
+  assert.equal(rows[0].占用隔油池容积, '');
+  assert.equal(rows[0].测算依据.includes('120 W/m2'), true);
+  assert.equal(rows[1].估算用电负荷, '30 kW');
+  assert.equal(rows[1].测算依据.includes('150 W/m2'), true);
 });
 
 test('keeps invalid uploaded shop rows in the result with clear error text', () => {

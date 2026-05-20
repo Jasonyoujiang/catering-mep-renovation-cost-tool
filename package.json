@@ -2,7 +2,7 @@
   "name": "catering-mep-renovation-cost-tool",
   "version": "0.1.0",
   "private": true,
-  "description": "餐饮商铺机电改造方案与成本测算本地工具",
+  "description": "商铺机电改造方案与成本测算本地工具",
   "scripts": {
     "test": "node --test tests/*.test.js"
   }

@@ -36,6 +36,10 @@
     重油烟餐饮: 'heavy',
     重餐: 'heavy',
     重油烟: 'heavy',
+    零售: 'retail',
+    生活服务: 'service',
+    服务: 'service',
+    超市: 'supermarket',
   };
 
   const TRUTHY_VALUES = new Set(['是', '启用', '启用指定用电量', '指定', 'y', 'yes', 'true', '1']);
@@ -120,7 +124,7 @@
     }
 
     if (!diningTypeId) {
-      errors.push('业态类型需填写轻餐、普通餐饮或重油烟餐饮');
+      errors.push('业态类型需填写轻餐、普通餐饮、重油烟餐饮、零售、生活服务或超市');
     }
 
     if (hasSpecifiedDemand && !specifiedDemand) {
@@ -144,10 +148,10 @@
       指定用电量: hasSpecifiedDemand ? specifiedDemand : '',
       估算用电负荷: plan.items.electricalLoad.value,
       配套电缆规格: plan.items.electricalCable.value,
-      供水管径: plan.items.water.value,
-      排水管径: plan.items.drainage.value,
-      排油烟风量: plan.items.exhaust.value,
-      占用隔油池容积: plan.items.greaseTrap.value,
+      供水管径: plan.items.water?.value || '',
+      排水管径: plan.items.drainage?.value || '',
+      排油烟风量: plan.items.exhaust?.value || '',
+      占用隔油池容积: plan.items.greaseTrap?.value || '',
       测算依据: createBasis(plan),
       处理状态: '成功',
       错误说明: '',
@@ -175,6 +179,14 @@
         面积: 80,
         是否启用指定用电量: '是',
         指定用电量: 90,
+      },
+      {
+        商铺编号: 'L3-301',
+        楼层: 'L3',
+        业态类型: '零售',
+        面积: 200,
+        是否启用指定用电量: '否',
+        指定用电量: '',
       },
     ];
   }

@@ -3,7 +3,7 @@
   <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>餐饮商铺机电改造方案与成本测算</title>
+    <title>商铺机电改造方案与成本测算</title>
     <link rel="stylesheet" href="styles.css?v=20260520-batch-excel">
   </head>
   <body>
@@ -11,7 +11,7 @@
       <header class="app-header">
         <div>
           <p class="eyebrow">商业项目机电管理工具</p>
-          <h1>餐饮商铺机电改造方案与成本测算</h1>
+          <h1>商铺机电改造方案与成本测算</h1>
         </div>
         <p class="header-note">第一版为管理测算框架，计算逻辑和价格资料可逐步扩展。</p>
       </header>
@@ -22,7 +22,7 @@
             <span>01</span>
             <div>
               <h2>改造方案生成</h2>
-              <p>输入面积和餐饮类型，生成第一批机电配置参数。</p>
+              <p>输入面积和业态类型，生成第一批机电配置参数。</p>
             </div>
           </div>
 
@@ -32,7 +32,7 @@
               <input data-area type="number" min="1" step="0.1" placeholder="例如 120">
             </label>
             <label>
-              <span>餐饮类型</span>
+              <span>业态类型</span>
               <select data-dining-type></select>
             </label>
             <label class="checkbox-field">
@@ -104,10 +104,10 @@
     </main>
 
     <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
-    <script src="data/cable-table.js"></script>
-    <script src="data/rules.js"></script>
-    <script src="data/items.js"></script>
-    <script src="data/batch.js"></script>
-    <script src="app.js"></script>
+    <script src="data/cable-table.js?v=20260520-business-type"></script>
+    <script src="data/rules.js?v=20260520-business-type"></script>
+    <script src="data/items.js?v=20260520-business-type"></script>
+    <script src="data/batch.js?v=20260520-business-type"></script>
+    <script src="app.js?v=20260520-business-type"></script>
   </body>
 </html>

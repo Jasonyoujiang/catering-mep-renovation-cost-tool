@@ -7,16 +7,19 @@ const {
   getDiningTypeOptions,
 } = require('../data/rules.js');
 
-test('returns the three first-version dining type options', () => {
+test('returns the supported first-version business type options', () => {
   const options = getDiningTypeOptions();
 
   assert.deepEqual(
     options.map((item) => item.id),
-    ['light', 'standard', 'heavy']
+    ['light', 'standard', 'heavy', 'retail', 'service', 'supermarket']
   );
   assert.equal(options[0].name, '轻餐');
   assert.equal(options[1].name, '普通餐饮');
   assert.equal(options[2].name, '重油烟餐饮');
+  assert.equal(options[3].name, '零售');
+  assert.equal(options[4].name, '生活服务');
+  assert.equal(options[5].name, '超市');
 });
 
 test('calculates a standard catering MEP plan from area and dining type', () => {
@@ -103,10 +106,26 @@ test('calculates grease trap volume from dining type indicators', () => {
   assert.equal(standard.items.greaseTrap.note, '按 1 m3/100m2 指标计算，不足 100m2 部分按面积比例计算。');
 });
 
+test('non-catering business types only calculate electrical load and cable', () => {
+  const retail = calculateRenovationPlan(200, 'retail');
+  const service = calculateRenovationPlan(200, 'service');
+  const supermarket = calculateRenovationPlan(200, 'supermarket');
+
+  assert.deepEqual(Object.keys(retail.items), ['electricalLoad', 'electricalCable']);
+  assert.equal(retail.items.electricalLoad.value, '24 kW');
+  assert.equal(retail.items.electricalLoad.note.includes('120 W/m2'), true);
+  assert.equal(retail.items.electricalCable.note.includes('25 kW 档'), true);
+  assert.equal(service.items.electricalLoad.value, '24 kW');
+  assert.equal(supermarket.items.electricalLoad.value, '30 kW');
+  assert.equal(supermarket.items.electricalLoad.note.includes('150 W/m2'), true);
+  assert.equal(retail.risks.some((item) => item.includes('排油烟')), false);
+  assert.equal(retail.risks.some((item) => item.includes('隔油池')), false);
+});
+
 test('rejects unsupported area and dining type values', () => {
   assert.throws(() => calculateRenovationPlan(0, 'standard'), /商铺面积/);
   assert.throws(() => calculateRenovationPlan(-10, 'standard'), /商铺面积/);
-  assert.throws(() => calculateRenovationPlan(100, 'unknown'), /餐饮类型/);
+  assert.throws(() => calculateRenovationPlan(100, 'unknown'), /业态类型/);
   assert.throws(() => calculateRenovationPlan(100, 'standard', { specifiedDemandKw: 0 }), /指定用电量/);
 });
 
@@ -116,4 +135,6 @@ test('exposes dining type data for future extension', () => {
   assert.equal(DINING_TYPES.heavy.demandKwPerSquareMeter, 0.5);
   assert.equal(DINING_TYPES.heavy.exhaustAirVolumePerSquareMeter, 37);
   assert.equal(DINING_TYPES.light.greaseTrapCubicMeterPerHundredSquareMeters, 0.5);
+  assert.equal(DINING_TYPES.retail.demandKwPerSquareMeter, 0.12);
+  assert.equal(DINING_TYPES.supermarket.demandKwPerSquareMeter, 0.15);
 });
