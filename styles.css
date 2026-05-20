@@ -105,6 +105,10 @@ h1 {
   box-shadow: var(--shadow);
 }
 
+.panel--wide {
+  grid-column: 1 / -1;
+}
+
 .panel__header {
   display: grid;
   grid-template-columns: 44px 1fr;
@@ -150,6 +154,10 @@ h1 {
   border: 1px solid var(--line);
   border-radius: 8px;
   background: var(--panel-soft);
+}
+
+.batch-form {
+  grid-template-columns: minmax(280px, 1fr) 180px 180px;
 }
 
 label {
@@ -259,8 +267,15 @@ button:active {
   margin-top: 18px;
 }
 
+.table-scroll {
+  width: 100%;
+  overflow-x: auto;
+  border-radius: 8px;
+}
+
 .plan-table,
-.cost-table {
+.cost-table,
+.batch-table {
   width: 100%;
   border-collapse: separate;
   border-spacing: 0;
@@ -272,14 +287,17 @@ button:active {
 }
 
 .plan-table,
-.cost-table {
+.cost-table,
+.batch-table {
   table-layout: fixed;
 }
 
 .plan-table th,
 .plan-table td,
 .cost-table th,
-.cost-table td {
+.cost-table td,
+.batch-table th,
+.batch-table td {
   border-bottom: 1px solid var(--line);
   padding: 14px 16px;
   text-align: left;
@@ -288,7 +306,8 @@ button:active {
 }
 
 .plan-table th,
-.cost-table th {
+.cost-table th,
+.batch-table th {
   background: #eaf0eb;
   color: var(--accent-strong);
   font-weight: 820;
@@ -326,7 +345,8 @@ button:active {
 }
 
 .plan-table tr:last-child td,
-.cost-table tr:last-child td {
+.cost-table tr:last-child td,
+.batch-table tr:last-child td {
   border-bottom: 0;
 }
 
@@ -363,10 +383,40 @@ button:active {
   font-weight: 820;
 }
 
+.batch-table {
+  min-width: 920px;
+}
+
+.batch-table th,
+.batch-table td {
+  padding: 12px 14px;
+  font-size: 14px;
+}
+
+.batch-table th:first-child,
+.batch-table td:first-child {
+  width: 130px;
+}
+
+.batch-table th:nth-child(2),
+.batch-table td:nth-child(2) {
+  width: 90px;
+}
+
+.batch-table th:nth-child(3),
+.batch-table td:nth-child(3),
+.batch-table th:nth-child(4),
+.batch-table td:nth-child(4),
+.batch-table th:nth-child(7),
+.batch-table td:nth-child(7) {
+  width: 120px;
+}
+
 @media (max-width: 860px) {
   .app-header,
   .workspace,
-  .form-grid {
+  .form-grid,
+  .batch-form {
     grid-template-columns: 1fr;
   }
 

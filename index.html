@@ -4,7 +4,7 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>餐饮商铺机电改造方案与成本测算</title>
-    <link rel="stylesheet" href="styles.css?v=20260515-cost-table">
+    <link rel="stylesheet" href="styles.css?v=20260520-batch-excel">
   </head>
   <body>
     <main class="app-shell">
@@ -78,12 +78,36 @@
           <div class="output-stack" data-cost-output></div>
           <p class="form-message" data-cost-message data-tone="neutral"></p>
         </article>
+
+        <article class="panel panel--wide">
+          <div class="panel__header">
+            <span>03</span>
+            <div>
+              <h2>批量商铺机电条件生成</h2>
+              <p>上传商铺 Excel，按现有规则批量生成机电条件并下载结果表。</p>
+            </div>
+          </div>
+
+          <form class="form-grid batch-form" data-batch-form>
+            <label>
+              <span>商铺 Excel</span>
+              <input data-batch-file type="file" accept=".xlsx,.xls">
+            </label>
+            <button type="button" data-template-download>下载 Excel 模板</button>
+            <button type="submit">生成结果 Excel</button>
+          </form>
+
+          <div class="output-stack" data-batch-output></div>
+          <p class="form-message" data-batch-message data-tone="neutral"></p>
+        </article>
       </section>
     </main>
 
+    <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
     <script src="data/cable-table.js"></script>
     <script src="data/rules.js"></script>
     <script src="data/items.js"></script>
+    <script src="data/batch.js"></script>
     <script src="app.js"></script>
   </body>
 </html>

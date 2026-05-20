@@ -1,6 +1,7 @@
 (function attachApp(global) {
   const rules = global.MepRenovationRules;
   const catalog = global.MepCostCatalog;
+  const batch = global.MepBatchPlanner;
 
   function validateAreaInput(value) {
     const area = Number(value);
@@ -82,6 +83,15 @@
     };
   }
 
+  function escapeHtml(value) {
+    return String(value ?? '')
+      .replaceAll('&', '&amp;')
+      .replaceAll('<', '&lt;')
+      .replaceAll('>', '&gt;')
+      .replaceAll('"', '&quot;')
+      .replaceAll("'", '&#039;');
+  }
+
   function buildPlanResultRows(plan) {
     return Object.values(plan.items).map((item) => [item.label, item.value, item.note]);
   }
@@ -141,18 +151,20 @@
   }
 
   function renderTable(container, className, headers, rows) {
-    const headerCells = headers.map((header) => `<th>${header}</th>`).join('');
+    const headerCells = headers.map((header) => `<th>${escapeHtml(header)}</th>`).join('');
     const bodyRows = rows
-      .map((row) => `<tr>${row.map((cell) => `<td>${cell}</td>`).join('')}</tr>`)
+      .map((row) => `<tr>${row.map((cell) => `<td>${escapeHtml(cell)}</td>`).join('')}</tr>`)
       .join('');
 
     container.innerHTML = `
-      <table class="${className}">
-        <thead>
-          <tr>${headerCells}</tr>
-        </thead>
-        <tbody>${bodyRows}</tbody>
-      </table>
+      <div class="table-scroll">
+        <table class="${escapeHtml(className)}">
+          <thead>
+            <tr>${headerCells}</tr>
+          </thead>
+          <tbody>${bodyRows}</tbody>
+        </table>
+      </div>
     `;
   }
 
@@ -223,6 +235,127 @@
     renderTable(output, 'cost-table', ['项目', '内容'], rows);
   }
 
+  function requireSpreadsheetLibrary() {
+    if (!global.XLSX) {
+      throw new Error('Excel 处理组件未加载，请检查网络后刷新页面。');
+    }
+
+    return global.XLSX;
+  }
+
+  function createTimestamp() {
+    const now = new Date();
+    const pad = (value) => String(value).padStart(2, '0');
+    return [
+      now.getFullYear(),
+      pad(now.getMonth() + 1),
+      pad(now.getDate()),
+      '-',
+      pad(now.getHours()),
+      pad(now.getMinutes()),
+    ].join('');
+  }
+
+  function writeExcelFile(rows, headers, sheetName, fileName) {
+    const xlsx = requireSpreadsheetLibrary();
+    const workbook = xlsx.utils.book_new();
+    const worksheet = xlsx.utils.json_to_sheet(rows, { header: headers });
+    worksheet['!cols'] = headers.map((header) => ({
+      wch: header === '测算依据' ? 54 : Math.max(12, Math.min(24, String(header).length + 8)),
+    }));
+    xlsx.utils.book_append_sheet(workbook, worksheet, sheetName);
+    xlsx.writeFile(workbook, fileName);
+  }
+
+  function readExcelRows(file) {
+    const xlsx = requireSpreadsheetLibrary();
+
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onload = (event) => {
+        try {
+          const workbook = xlsx.read(event.target.result, { type: 'array' });
+          const sheetName = workbook.SheetNames[0];
+          const worksheet = workbook.Sheets[sheetName];
+          resolve(xlsx.utils.sheet_to_json(worksheet, { defval: '', raw: false }));
+        } catch (error) {
+          reject(new Error(`Excel 读取失败：${error.message}`));
+        }
+      };
+      reader.onerror = () => reject(new Error('Excel 文件读取失败，请重新选择文件。'));
+      reader.readAsArrayBuffer(file);
+    });
+  }
+
+  function buildBatchPreviewRows(rows) {
+    return rows.slice(0, 8).map((row) => [
+      row.商铺编号,
+      row.楼层,
+      row.业态类型,
+      row.面积,
+      row.估算用电负荷,
+      row.配套电缆规格,
+      row.处理状态,
+    ]);
+  }
+
+  function handleTemplateDownload() {
+    const message = document.querySelector('[data-batch-message]');
+
+    try {
+      writeExcelFile(
+        batch.createTemplateRows(),
+        batch.BATCH_TEMPLATE_HEADERS,
+        '商铺基础信息',
+        '商铺机电条件批量测算模板.xlsx'
+      );
+      setMessage(message, 'Excel 模板已生成，请按模板填写后上传。', 'success');
+    } catch (error) {
+      setMessage(message, error.message, 'error');
+    }
+  }
+
+  async function handleBatchSubmit(event) {
+    event.preventDefault();
+    const fileInput = document.querySelector('[data-batch-file]');
+    const output = document.querySelector('[data-batch-output]');
+    const message = document.querySelector('[data-batch-message]');
+    output.innerHTML = '';
+
+    if (!fileInput.files || fileInput.files.length === 0) {
+      setMessage(message, '请先选择要处理的 Excel 文件。', 'error');
+      return;
+    }
+
+    try {
+      const importedRows = await readExcelRows(fileInput.files[0]);
+      if (importedRows.length === 0) {
+        setMessage(message, 'Excel 中没有可处理的商铺数据。', 'error');
+        return;
+      }
+
+      const resultRows = batch.buildBatchPlanRows(importedRows);
+      const successCount = resultRows.filter((row) => row.处理状态 === '成功').length;
+      const failedCount = resultRows.length - successCount;
+      const fileName = `商铺机电条件批量测算结果-${createTimestamp()}.xlsx`;
+
+      writeExcelFile(resultRows, batch.BATCH_OUTPUT_HEADERS, '机电条件测算结果', fileName);
+      renderTable(
+        output,
+        'batch-table',
+        ['商铺编号', '楼层', '业态类型', '面积', '估算用电负荷', '配套电缆规格', '处理状态'],
+        buildBatchPreviewRows(resultRows)
+      );
+      setMessage(
+        message,
+        `已处理 ${resultRows.length} 行，成功 ${successCount} 行，失败 ${failedCount} 行；结果 Excel 已下载。`,
+        failedCount > 0 ? 'error' : 'success'
+      );
+    } catch (error) {
+      setMessage(message, error.message, 'error');
+    }
+  }
+
   function initApp() {
     renderDiningTypes();
     renderCostCategories();
@@ -242,6 +375,8 @@
       document.querySelector('[data-cost-output]').innerHTML = '';
       setMessage(document.querySelector('[data-cost-message]'), '', 'neutral');
     });
+    document.querySelector('[data-template-download]').addEventListener('click', handleTemplateDownload);
+    document.querySelector('[data-batch-form]').addEventListener('submit', handleBatchSubmit);
   }
 
   const api = {
@@ -249,8 +384,10 @@
     validateOptionalDemandInput,
     resolveSpecifiedDemand,
     formatCurrency,
+    escapeHtml,
     buildPlanResultRows,
     buildCostResultRows,
+    buildBatchPreviewRows,
     initApp,
   };
 
