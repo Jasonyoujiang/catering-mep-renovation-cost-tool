@@ -1,7 +1,7 @@
 (function attachCableTable(global) {
   const CABLE_SELECTION_TABLE = [
-    { ratedPowerKw: 10, coefficientKx: 1, calculatedCurrentA: 17.9, recommendedCable: '3×10mm²' },
-    { ratedPowerKw: 15, coefficientKx: 1, calculatedCurrentA: 26.8, recommendedCable: '3×10mm²' },
+    { ratedPowerKw: 10, coefficientKx: 1, calculatedCurrentA: 17.9, recommendedCable: '5×6mm²' },
+    { ratedPowerKw: 15, coefficientKx: 1, calculatedCurrentA: 26.8, recommendedCable: '5×6mm²' },
     { ratedPowerKw: 20, coefficientKx: 1, calculatedCurrentA: 35.8, recommendedCable: '3×10mm²' },
     { ratedPowerKw: 25, coefficientKx: 1, calculatedCurrentA: 44.7, recommendedCable: '3×10mm²' },
     { ratedPowerKw: 30, coefficientKx: 1, calculatedCurrentA: 53.6, recommendedCable: '3×10mm²' },
@@ -51,7 +51,7 @@
     { ratedPowerKw: 250, coefficientKx: 0.7, calculatedCurrentA: 312.8, recommendedCable: '2×(3×95mm²)' },
     { ratedPowerKw: 260, coefficientKx: 0.7, calculatedCurrentA: 325.3, recommendedCable: '2×(3×120mm²)' },
     { ratedPowerKw: 270, coefficientKx: 0.7, calculatedCurrentA: 337.9, recommendedCable: '2×(3×120mm²)' },
-    { ratedPowerKw: 275, coefficientKx: 0.65, calculatedCurrentA: 319.5, recommendedCable: '2×(3×95mm²)' },
+    { ratedPowerKw: 275, coefficientKx: 0.65, calculatedCurrentA: 319.5, recommendedCable: '2×(3×120mm²)' },
     { ratedPowerKw: 285, coefficientKx: 0.65, calculatedCurrentA: 331.2, recommendedCable: '2×(3×120mm²)' },
     { ratedPowerKw: 295, coefficientKx: 0.65, calculatedCurrentA: 342.8, recommendedCable: '2×(3×120mm²)' },
     { ratedPowerKw: 305, coefficientKx: 0.65, calculatedCurrentA: 354.4, recommendedCable: '2×(3×120mm²)' },
