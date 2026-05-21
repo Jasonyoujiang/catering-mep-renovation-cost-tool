@@ -15,6 +15,7 @@ const {
   buildBatchPreviewRows,
   getTemplateColumnWidth,
   getResultColumnWidth,
+  getBatchResultCellFillColor,
   applyTemplateCellStyle,
 } = require('../app.js');
 
@@ -128,6 +129,25 @@ test('sets Excel result widths for key output fields', () => {
   assert.equal(getResultColumnWidth('现状电缆1'), 18);
   assert.equal(getResultColumnWidth('现状油烟管尺寸'), 18);
   assert.equal(getResultColumnWidth('商铺编号'), 14);
+});
+
+test('highlights generated result cells when existing conditions need review', () => {
+  const row = {
+    现状电缆1: '',
+    现状电缆2: '4×10+1×6',
+    现状给水管径: 'DN20',
+    现状排水管径: 'DN100',
+    配套电缆规格: 'YJV 4×25+1×16mm²',
+    供水管径: 'DN40',
+    排水管径: 'DN160',
+  };
+
+  assert.equal(getBatchResultCellFillColor(row, '配套电缆规格'), 'FFFFF2CC');
+  assert.equal(getBatchResultCellFillColor(row, '供水管径'), 'FFFFF2CC');
+  assert.equal(getBatchResultCellFillColor(row, '排水管径'), 'FFFFF2CC');
+  assert.equal(getBatchResultCellFillColor(row, '估算用电负荷'), null);
+  assert.equal(getBatchResultCellFillColor({ ...row, 现状电缆2: '' }, '配套电缆规格'), null);
+  assert.equal(getBatchResultCellFillColor({ ...row, 供水管径: '' }, '供水管径'), null);
 });
 
 test('limits the batch preview table to five rows', () => {

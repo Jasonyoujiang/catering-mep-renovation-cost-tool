@@ -330,6 +330,27 @@
     return widthMap[header] || getTemplateColumnWidth(header);
   }
 
+  function hasCellValue(value) {
+    return String(value ?? '').trim() !== '';
+  }
+
+  function getBatchResultCellFillColor(row, header) {
+    const highlightRules = {
+      配套电缆规格: ['现状电缆1', '现状电缆2'],
+      供水管径: ['现状给水管径'],
+      排水管径: ['现状排水管径'],
+    };
+    const sourceHeaders = highlightRules[header];
+
+    if (!sourceHeaders || !hasCellValue(row?.[header])) {
+      return null;
+    }
+
+    return sourceHeaders.some((sourceHeader) => hasCellValue(row?.[sourceHeader]))
+      ? 'FFFFF2CC'
+      : null;
+  }
+
   function applyTemplateCellStyle(cell, options = {}) {
     const fillColor = options.isHeader ? 'FF14513F' : options.fillColor;
 
@@ -422,10 +443,15 @@
 
     for (let rowNumber = 2; rowNumber <= rows.length + 1; rowNumber += 1) {
       const row = worksheet.getRow(rowNumber);
+      const sourceRow = rows[rowNumber - 2] || {};
       row.height = 26;
       row.eachCell((cell) => {
+        const header = headers[cell.col - 1];
+        const cellFillColor = options.getCellFillColor
+          ? options.getCellFillColor(sourceRow, header)
+          : null;
         applyTemplateCellStyle(cell, {
-          fillColor: rowNumber % 2 === 0 ? 'FFF8FAF7' : 'FFFFFFFF',
+          fillColor: cellFillColor || (rowNumber % 2 === 0 ? 'FFF8FAF7' : 'FFFFFFFF'),
         });
       });
     }
@@ -488,6 +514,7 @@
   function createStyledResultWorkbook(ExcelJS, rows, headers, sheetName) {
     return createStyledWorkbook(ExcelJS, rows, headers, sheetName, {
       getColumnWidth: getResultColumnWidth,
+      getCellFillColor: getBatchResultCellFillColor,
     });
   }
 
@@ -642,6 +669,7 @@
     escapeHtml,
     getTemplateColumnWidth,
     getResultColumnWidth,
+    getBatchResultCellFillColor,
     applyTemplateCellStyle,
     createStyledWorkbook,
     createStyledTemplateWorkbook,
