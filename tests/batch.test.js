@@ -16,12 +16,18 @@ test('defines the first-version batch Excel template headers', () => {
     '业态类型',
     '面积',
     '指定用电量',
+    '现状电缆规格',
+    '现状给水管径',
+    '现状排水管径',
+    '现状油烟管尺寸',
   ]);
 
   assert.equal(BATCH_OUTPUT_HEADERS.includes('风险提示'), false);
   assert.equal(BATCH_OUTPUT_HEADERS.includes('测算依据'), false);
   assert.equal(BATCH_OUTPUT_HEADERS.includes('是否启用指定用电量'), false);
   assert.equal(BATCH_OUTPUT_HEADERS.includes('指定用电量'), true);
+  assert.equal(BATCH_OUTPUT_HEADERS.includes('现状电缆规格'), true);
+  assert.equal(BATCH_OUTPUT_HEADERS.includes('现状油烟管尺寸'), true);
 });
 
 test('creates template example rows with the renamed shop and business type fields', () => {
@@ -31,6 +37,10 @@ test('creates template example rows with the renamed shop and business type fiel
   assert.equal(Object.hasOwn(rows[0], '商铺编号'), true);
   assert.equal(Object.hasOwn(rows[0], '楼层'), true);
   assert.equal(Object.hasOwn(rows[0], '业态类型'), true);
+  assert.equal(Object.hasOwn(rows[0], '现状电缆规格'), true);
+  assert.equal(Object.hasOwn(rows[0], '现状给水管径'), true);
+  assert.equal(Object.hasOwn(rows[0], '现状排水管径'), true);
+  assert.equal(Object.hasOwn(rows[0], '现状油烟管尺寸'), true);
   assert.equal(Object.hasOwn(rows[0], '餐饮类型'), false);
   assert.equal(Object.hasOwn(rows[0], '商铺名称'), false);
 });
@@ -53,6 +63,10 @@ test('builds batch MEP condition rows from uploaded shop records', () => {
       业态类型: '普通餐饮',
       面积: 120,
       指定用电量: '',
+      现状电缆规格: 'YJV 4×16+1×10mm²',
+      现状给水管径: 'DN25',
+      现状排水管径: 'DN110',
+      现状油烟管尺寸: '500×400',
     },
     {
       商铺编号: 'L2-205',
@@ -67,6 +81,10 @@ test('builds batch MEP condition rows from uploaded shop records', () => {
   assert.equal(rows[0].商铺编号, 'L1-101');
   assert.equal(rows[0].楼层, 'L1');
   assert.equal(rows[0].业态类型, '普通餐饮');
+  assert.equal(rows[0].现状电缆规格, 'YJV 4×16+1×10mm²');
+  assert.equal(rows[0].现状给水管径, 'DN25');
+  assert.equal(rows[0].现状排水管径, 'DN110');
+  assert.equal(rows[0].现状油烟管尺寸, '500×400');
   assert.equal(rows[0].估算用电负荷, '48 kW');
   assert.equal(rows[0].配套电缆规格, 'YJV 4×25+1×16mm²');
   assert.equal(rows[0].供水管径, 'DN40');
