@@ -4,7 +4,7 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>商铺机电改造方案与成本测算</title>
-    <link rel="stylesheet" href="styles.css?v=20260520-batch-excel">
+    <link rel="stylesheet" href="styles.css?v=20260521-batch-upload-polish">
   </head>
   <body>
     <main class="app-shell">
@@ -89,9 +89,17 @@
           </div>
 
           <form class="form-grid batch-form" data-batch-form>
-            <label>
+            <label class="file-field">
               <span>商铺 Excel</span>
-              <input data-batch-file type="file" accept=".xlsx,.xls">
+              <input data-batch-file class="file-field__input" type="file" accept=".xlsx,.xls">
+              <span class="file-picker">
+                <span class="file-picker__badge">XLSX</span>
+                <span class="file-picker__content">
+                  <strong data-batch-file-name>未选择文件</strong>
+                  <small>支持 .xlsx / .xls 模板文件</small>
+                </span>
+                <span class="file-picker__action">选择文件</span>
+              </span>
             </label>
             <button type="button" data-template-download>下载 Excel 模板</button>
             <button type="submit">生成结果 Excel</button>
@@ -109,6 +117,6 @@
     <script src="data/rules.js?v=20260521-optional-area"></script>
     <script src="data/items.js?v=20260520-business-type"></script>
     <script src="data/batch.js?v=20260521-existing-cable-deduction"></script>
-    <script src="app.js?v=20260521-existing-cable-deduction"></script>
+    <script src="app.js?v=20260521-batch-upload-polish"></script>
   </body>
 </html>

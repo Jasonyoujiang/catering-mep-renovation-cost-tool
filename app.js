@@ -581,6 +581,17 @@
     ]);
   }
 
+  function updateBatchFileName(fileInput) {
+    const fileName = document.querySelector('[data-batch-file-name]');
+    if (!fileName) {
+      return;
+    }
+
+    fileName.textContent = fileInput.files && fileInput.files.length > 0
+      ? fileInput.files[0].name
+      : '未选择文件';
+  }
+
   async function handleTemplateDownload() {
     const message = document.querySelector('[data-batch-message]');
 
@@ -658,6 +669,8 @@
       setMessage(document.querySelector('[data-cost-message]'), '', 'neutral');
     });
     document.querySelector('[data-template-download]').addEventListener('click', handleTemplateDownload);
+    const batchFileInput = document.querySelector('[data-batch-file]');
+    batchFileInput.addEventListener('change', () => updateBatchFileName(batchFileInput));
     document.querySelector('[data-batch-form]').addEventListener('submit', handleBatchSubmit);
   }
 
@@ -678,6 +691,7 @@
     buildPlanResultRows,
     buildCostResultRows,
     buildBatchPreviewRows,
+    updateBatchFileName,
     initApp,
   };
 
