@@ -104,6 +104,42 @@ test('builds batch MEP condition rows from uploaded shop records', () => {
   assert.equal(rows[1].指定用电量, 90);
 });
 
+test('allows missing area for batch rows when specified demand is filled', () => {
+  const rows = buildBatchPlanRows([
+    {
+      商铺编号: 'L2-205',
+      楼层: 'L2',
+      业态类型: '轻餐',
+      面积: '',
+      指定用电量: 20,
+    },
+  ]);
+
+  assert.equal(rows[0].处理状态, '成功');
+  assert.equal(rows[0].面积, '');
+  assert.equal(rows[0].估算用电负荷, '20 kW');
+  assert.equal(rows[0].配套电缆规格, 'YJV 4×10+1×6mm²');
+  assert.equal(rows[0].供水管径, '');
+  assert.equal(rows[0].排水管径, '');
+  assert.equal(rows[0].排油烟风量, '');
+  assert.equal(rows[0].占用隔油池容积, '');
+});
+
+test('still requires area for batch rows without specified demand', () => {
+  const rows = buildBatchPlanRows([
+    {
+      商铺编号: 'L2-205',
+      楼层: 'L2',
+      业态类型: '轻餐',
+      面积: '',
+      指定用电量: '',
+    },
+  ]);
+
+  assert.equal(rows[0].处理状态, '失败');
+  assert.match(rows[0].错误说明, /面积/);
+});
+
 test('builds non-catering batch rows with only electrical conditions filled', () => {
   const rows = buildBatchPlanRows([
     {

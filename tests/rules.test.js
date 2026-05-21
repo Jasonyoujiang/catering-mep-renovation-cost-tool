@@ -68,6 +68,15 @@ test('uses the user supplied electrical demand when it is specified', () => {
   assert.equal(plan.items.electricalCable.note.includes('主力店、水吧'), true);
 });
 
+test('allows missing area when electrical demand is specified', () => {
+  const plan = calculateRenovationPlan(null, 'light', { specifiedDemandKw: 20 });
+
+  assert.equal(plan.area, null);
+  assert.deepEqual(Object.keys(plan.items), ['electricalLoad', 'electricalCable']);
+  assert.equal(plan.items.electricalLoad.value, '20 kW');
+  assert.equal(plan.items.electricalCable.value, 'YJV 4×10+1×6mm²');
+});
+
 test('heavy-oil catering produces higher exhaust and grease trap demand than light catering', () => {
   const light = calculateRenovationPlan(100, 'light');
   const heavy = calculateRenovationPlan(100, 'heavy');
@@ -125,6 +134,7 @@ test('non-catering business types only calculate electrical load and cable', () 
 test('rejects unsupported area and dining type values', () => {
   assert.throws(() => calculateRenovationPlan(0, 'standard'), /商铺面积/);
   assert.throws(() => calculateRenovationPlan(-10, 'standard'), /商铺面积/);
+  assert.throws(() => calculateRenovationPlan(null, 'standard'), /商铺面积/);
   assert.throws(() => calculateRenovationPlan(100, 'unknown'), /业态类型/);
   assert.throws(() => calculateRenovationPlan(100, 'standard', { specifiedDemandKw: 0 }), /指定用电量/);
 });

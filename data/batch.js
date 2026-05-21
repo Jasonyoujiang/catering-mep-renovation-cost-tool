@@ -96,10 +96,12 @@
 
   function buildBatchPlanRow(row) {
     const errors = [];
+    const areaText = normalizeText(row.面积);
     const area = parseArea(row.面积);
     const diningTypeId = resolveDiningTypeId(row.业态类型);
     const hasSpecifiedDemand = normalizeText(row.指定用电量) !== '';
     const specifiedDemand = parseSpecifiedDemand(row.指定用电量);
+    const canSkipArea = hasSpecifiedDemand && (!areaText || Number(row.面积) === 0);
 
     if (!normalizeText(row.商铺编号)) {
       errors.push('商铺编号为空');
@@ -109,7 +111,7 @@
       errors.push('楼层为空');
     }
 
-    if (!area) {
+    if (!area && !canSkipArea) {
       errors.push('面积必须为大于 0 的数字');
     }
 
@@ -133,7 +135,7 @@
       商铺编号: normalizeText(row.商铺编号),
       楼层: normalizeText(row.楼层),
       业态类型: plan.diningType.name,
-      面积: area,
+      面积: area || '',
       指定用电量: hasSpecifiedDemand ? specifiedDemand : '',
       现状电缆规格: normalizeText(row.现状电缆规格),
       现状给水管径: normalizeText(row.现状给水管径),

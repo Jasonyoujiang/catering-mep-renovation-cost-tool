@@ -86,6 +86,10 @@
     }
   }
 
+  function hasAreaValue(area) {
+    return area !== undefined && area !== null && area !== '';
+  }
+
   function getDiningType(diningTypeId) {
     const diningType = DINING_TYPES[diningTypeId];
     if (!diningType) {
@@ -152,11 +156,18 @@
   }
 
   function calculateRenovationPlan(area, diningTypeId, options = {}) {
-    assertValidArea(area);
     const diningType = getDiningType(diningTypeId);
     assertValidSpecifiedDemand(options.specifiedDemandKw);
 
     const hasSpecifiedDemand = options.specifiedDemandKw !== undefined && options.specifiedDemandKw !== null;
+    const hasArea = hasAreaValue(area);
+
+    if (hasArea) {
+      assertValidArea(area);
+    } else if (!hasSpecifiedDemand) {
+      throw new Error('商铺面积必须为大于 0 的数字');
+    }
+
     const demandKw = hasSpecifiedDemand
       ? options.specifiedDemandKw
       : Math.ceil(area * diningType.demandKwPerSquareMeter);
@@ -178,7 +189,7 @@
       },
     };
 
-    if (diningType.isCatering) {
+    if (diningType.isCatering && hasArea) {
       const water = findAreaRuleValue(WATER_DIAMETER_RULES, area);
       const drainage = findAreaRuleValue(DRAINAGE_DIAMETER_RULES, area);
       const exhaustAirVolume = area * diningType.exhaustAirVolumePerSquareMeter;
@@ -215,7 +226,7 @@
     }
 
     return {
-      area,
+      area: hasArea ? area : null,
       diningType: {
         id: diningType.id,
         name: diningType.name,

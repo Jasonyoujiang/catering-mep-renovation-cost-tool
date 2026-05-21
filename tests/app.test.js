@@ -6,6 +6,7 @@ global.MepCostCatalog = require('../data/items.js');
 
 const {
   validateAreaInput,
+  resolvePlanAreaInput,
   validateOptionalDemandInput,
   resolveSpecifiedDemand,
   formatCurrency,
@@ -29,6 +30,22 @@ test('rejects blank, zero, and non-number shop area input', () => {
   assert.equal(validateAreaInput('').valid, false);
   assert.equal(validateAreaInput('0').valid, false);
   assert.equal(validateAreaInput('abc').valid, false);
+});
+
+test('allows blank or zero area only when specified demand is enabled', () => {
+  assert.deepEqual(resolvePlanAreaInput(true, ''), {
+    valid: true,
+    area: null,
+    message: '',
+  });
+  assert.deepEqual(resolvePlanAreaInput(true, '0'), {
+    valid: true,
+    area: null,
+    message: '',
+  });
+  assert.equal(resolvePlanAreaInput(false, '').valid, false);
+  assert.equal(resolvePlanAreaInput(false, '0').valid, false);
+  assert.equal(resolvePlanAreaInput(true, '120').area, 120);
 });
 
 test('validates optional specified electrical demand input', () => {

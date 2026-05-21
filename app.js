@@ -20,6 +20,18 @@
     };
   }
 
+  function resolvePlanAreaInput(isSpecifiedDemandEnabled, value) {
+    if (isSpecifiedDemandEnabled && (!value || Number(value) === 0)) {
+      return {
+        valid: true,
+        area: null,
+        message: '',
+      };
+    }
+
+    return validateAreaInput(value);
+  }
+
   function validateOptionalDemandInput(value) {
     if (!value) {
       return {
@@ -184,7 +196,7 @@
     const diningTypeSelect = document.querySelector('[data-dining-type]');
     const output = document.querySelector('[data-plan-output]');
     const message = document.querySelector('[data-plan-message]');
-    const validation = validateAreaInput(areaInput.value);
+    const validation = resolvePlanAreaInput(specifiedDemandToggle.checked, areaInput.value);
     const demandValidation = resolveSpecifiedDemand(
       specifiedDemandToggle.checked,
       specifiedDemandInput.value
@@ -208,7 +220,8 @@
     const demandMessage = demandValidation.value
       ? `，电气按指定用电量 ${demandValidation.value} kW 复核`
       : '';
-    setMessage(message, `${plan.diningType.name} ${plan.area} m2 初步改造参数已生成${demandMessage}。`, 'success');
+    const areaMessage = plan.area ? ` ${plan.area} m2` : '';
+    setMessage(message, `${plan.diningType.name}${areaMessage} 初步改造参数已生成${demandMessage}。`, 'success');
 
     renderTable(output, 'plan-table', ['子项', '推荐参数', '测算依据 / 复核提示'], buildPlanResultRows(plan));
     renderList(output, '风险提示', plan.risks);
@@ -557,6 +570,7 @@
 
   const api = {
     validateAreaInput,
+    resolvePlanAreaInput,
     validateOptionalDemandInput,
     resolveSpecifiedDemand,
     formatCurrency,
