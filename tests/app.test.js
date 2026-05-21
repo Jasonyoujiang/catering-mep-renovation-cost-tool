@@ -137,17 +137,21 @@ test('highlights generated result cells when existing conditions need review', (
     现状电缆2: '4×10+1×6',
     现状给水管径: 'DN20',
     现状排水管径: 'DN100',
+    现状油烟管尺寸: '500×400',
     配套电缆规格: 'YJV 4×25+1×16mm²',
     供水管径: 'DN40',
     排水管径: 'DN160',
+    排油烟风量: '3840 m3/h',
   };
 
   assert.equal(getBatchResultCellFillColor(row, '配套电缆规格'), 'FFFFF2CC');
   assert.equal(getBatchResultCellFillColor(row, '供水管径'), 'FFFFF2CC');
   assert.equal(getBatchResultCellFillColor(row, '排水管径'), 'FFFFF2CC');
+  assert.equal(getBatchResultCellFillColor(row, '排油烟风量'), 'FFFFF2CC');
   assert.equal(getBatchResultCellFillColor(row, '估算用电负荷'), null);
   assert.equal(getBatchResultCellFillColor({ ...row, 现状电缆2: '' }, '配套电缆规格'), null);
   assert.equal(getBatchResultCellFillColor({ ...row, 供水管径: '' }, '供水管径'), null);
+  assert.equal(getBatchResultCellFillColor({ ...row, 现状油烟管尺寸: '' }, '排油烟风量'), null);
 });
 
 test('limits the batch preview table to five rows', () => {
