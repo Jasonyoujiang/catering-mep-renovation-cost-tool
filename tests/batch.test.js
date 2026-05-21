@@ -15,12 +15,13 @@ test('defines the first-version batch Excel template headers', () => {
     '楼层',
     '业态类型',
     '面积',
-    '是否启用指定用电量',
     '指定用电量',
   ]);
 
   assert.equal(BATCH_OUTPUT_HEADERS.includes('风险提示'), false);
-  assert.equal(BATCH_OUTPUT_HEADERS.includes('测算依据'), true);
+  assert.equal(BATCH_OUTPUT_HEADERS.includes('测算依据'), false);
+  assert.equal(BATCH_OUTPUT_HEADERS.includes('是否启用指定用电量'), false);
+  assert.equal(BATCH_OUTPUT_HEADERS.includes('指定用电量'), true);
 });
 
 test('creates template example rows with the renamed shop and business type fields', () => {
@@ -51,7 +52,6 @@ test('builds batch MEP condition rows from uploaded shop records', () => {
       楼层: 'L1',
       业态类型: '普通餐饮',
       面积: 120,
-      是否启用指定用电量: '否',
       指定用电量: '',
     },
     {
@@ -59,7 +59,6 @@ test('builds batch MEP condition rows from uploaded shop records', () => {
       楼层: 'L2',
       业态类型: '轻餐',
       面积: 80,
-      是否启用指定用电量: '是',
       指定用电量: 90,
     },
   ]);
@@ -74,12 +73,13 @@ test('builds batch MEP condition rows from uploaded shop records', () => {
   assert.equal(rows[0].排水管径, 'DN160');
   assert.equal(rows[0].排油烟风量, '3840 m3/h');
   assert.equal(rows[0].占用隔油池容积, '1.2 m3');
-  assert.equal(rows[0].测算依据.includes('普通餐饮 0.4 kW/m2'), true);
+  assert.equal(rows[0].测算依据, undefined);
+  assert.equal(rows[0].是否启用指定用电量, undefined);
   assert.equal(rows[0].处理状态, '成功');
   assert.equal(rows[0].错误说明, '');
 
   assert.equal(rows[1].估算用电负荷, '90 kW');
-  assert.equal(rows[1].测算依据.includes('手动指定用电量'), true);
+  assert.equal(rows[1].指定用电量, 90);
 });
 
 test('builds non-catering batch rows with only electrical conditions filled', () => {
@@ -89,7 +89,6 @@ test('builds non-catering batch rows with only electrical conditions filled', ()
       楼层: 'L3',
       业态类型: '零售',
       面积: 200,
-      是否启用指定用电量: '否',
       指定用电量: '',
     },
     {
@@ -97,7 +96,6 @@ test('builds non-catering batch rows with only electrical conditions filled', ()
       楼层: 'B1',
       业态类型: '超市',
       面积: 200,
-      是否启用指定用电量: '否',
       指定用电量: '',
     },
   ]);
@@ -108,9 +106,9 @@ test('builds non-catering batch rows with only electrical conditions filled', ()
   assert.equal(rows[0].排水管径, '');
   assert.equal(rows[0].排油烟风量, '');
   assert.equal(rows[0].占用隔油池容积, '');
-  assert.equal(rows[0].测算依据.includes('120 W/m2'), true);
+  assert.equal(rows[0].测算依据, undefined);
   assert.equal(rows[1].估算用电负荷, '30 kW');
-  assert.equal(rows[1].测算依据.includes('150 W/m2'), true);
+  assert.equal(rows[1].测算依据, undefined);
 });
 
 test('keeps invalid uploaded shop rows in the result with clear error text', () => {
@@ -120,7 +118,6 @@ test('keeps invalid uploaded shop rows in the result with clear error text', () 
       楼层: 'B1',
       业态类型: '未知业态',
       面积: 0,
-      是否启用指定用电量: '否',
       指定用电量: '',
     },
   ]);
@@ -130,4 +127,19 @@ test('keeps invalid uploaded shop rows in the result with clear error text', () 
   assert.equal(rows[0].处理状态, '失败');
   assert.match(rows[0].错误说明, /面积|业态类型/);
   assert.equal(rows[0].风险提示, undefined);
+});
+
+test('rejects non-empty invalid specified demand without a separate enable column', () => {
+  const rows = buildBatchPlanRows([
+    {
+      商铺编号: 'L1-102',
+      楼层: 'L1',
+      业态类型: '轻餐',
+      面积: 80,
+      指定用电量: 'abc',
+    },
+  ]);
+
+  assert.equal(rows[0].处理状态, '失败');
+  assert.match(rows[0].错误说明, /指定用电量/);
 });

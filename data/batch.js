@@ -8,7 +8,6 @@
     '楼层',
     '业态类型',
     '面积',
-    '是否启用指定用电量',
     '指定用电量',
   ];
 
@@ -20,7 +19,6 @@
     '排水管径',
     '排油烟风量',
     '占用隔油池容积',
-    '测算依据',
     '处理状态',
     '错误说明',
   ];
@@ -42,8 +40,6 @@
     超市: 'supermarket',
   };
 
-  const TRUTHY_VALUES = new Set(['是', '启用', '启用指定用电量', '指定', 'y', 'yes', 'true', '1']);
-
   function normalizeText(value) {
     return String(value ?? '').trim();
   }
@@ -64,10 +60,6 @@
     }
 
     return area;
-  }
-
-  function isSpecifiedDemandEnabled(value) {
-    return TRUTHY_VALUES.has(normalizeText(value).toLowerCase());
   }
 
   function parseSpecifiedDemand(value) {
@@ -98,17 +90,11 @@
     return result;
   }
 
-  function createBasis(plan) {
-    return Object.values(plan.items)
-      .map((item) => `${item.label}：${item.note}`)
-      .join('；');
-  }
-
   function buildBatchPlanRow(row) {
     const errors = [];
     const area = parseArea(row.面积);
     const diningTypeId = resolveDiningTypeId(row.业态类型);
-    const hasSpecifiedDemand = isSpecifiedDemandEnabled(row.是否启用指定用电量);
+    const hasSpecifiedDemand = normalizeText(row.指定用电量) !== '';
     const specifiedDemand = parseSpecifiedDemand(row.指定用电量);
 
     if (!normalizeText(row.商铺编号)) {
@@ -128,7 +114,7 @@
     }
 
     if (hasSpecifiedDemand && !specifiedDemand) {
-      errors.push('启用指定用电量时，指定用电量必须为大于 0 的数字');
+      errors.push('指定用电量必须为空，或填写大于 0 的数字');
     }
 
     if (errors.length > 0) {
@@ -144,7 +130,6 @@
       楼层: normalizeText(row.楼层),
       业态类型: plan.diningType.name,
       面积: area,
-      是否启用指定用电量: hasSpecifiedDemand ? '是' : '否',
       指定用电量: hasSpecifiedDemand ? specifiedDemand : '',
       估算用电负荷: plan.items.electricalLoad.value,
       配套电缆规格: plan.items.electricalCable.value,
@@ -152,7 +137,6 @@
       排水管径: plan.items.drainage?.value || '',
       排油烟风量: plan.items.exhaust?.value || '',
       占用隔油池容积: plan.items.greaseTrap?.value || '',
-      测算依据: createBasis(plan),
       处理状态: '成功',
       错误说明: '',
     };
@@ -169,7 +153,6 @@
         楼层: 'L1',
         业态类型: '普通餐饮',
         面积: 120,
-        是否启用指定用电量: '否',
         指定用电量: '',
       },
       {
@@ -177,7 +160,6 @@
         楼层: 'L2',
         业态类型: '轻餐',
         面积: 80,
-        是否启用指定用电量: '是',
         指定用电量: 90,
       },
       {
@@ -185,7 +167,6 @@
         楼层: 'L3',
         业态类型: '零售',
         面积: 200,
-        是否启用指定用电量: '否',
         指定用电量: '',
       },
     ];
