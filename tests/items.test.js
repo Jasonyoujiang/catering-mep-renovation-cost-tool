@@ -12,10 +12,11 @@ test('returns first-version expandable cost categories', () => {
   const categories = getCostCategories();
 
   assert.deepEqual(
-    categories.map((item) => item.id),
+    categories.slice(0, 5).map((item) => item.id),
     ['cable', 'stainlessDuct', 'galvanizedDuct', 'exhaustFan', 'oilSmokePurifier']
   );
   assert.equal(categories[0].name, '电缆');
+  assert.ok(categories.length > 5);
 });
 
 test('returns specifications for a selected category', () => {
@@ -85,6 +86,32 @@ test('uses supplied 304 stainless duct full-service cost ranges', () => {
   assert.deepEqual(item.priceRange, [350, 450]);
   assert.ok(item.remark.includes('裸管成品价约 ¥220-¥280/m2'));
   assert.ok(item.remark.includes('常规主风管'));
+});
+
+test('loads imported mechanical cost menu workbook items into cost lookup', () => {
+  const categories = getCostCategories();
+  const galvanizedPipe = categories.find((item) => item.name === '镀锌钢管');
+  const waterMeter = categories.find((item) => item.name === '水表安装');
+  const fireExtinguisherBox = categories.find((item) => item.name === '灭火器面具箱安装');
+
+  assert.ok(galvanizedPipe);
+  assert.ok(waterMeter);
+  assert.ok(fireExtinguisherBox);
+  assert.equal(categories.filter((item) => item.id.startsWith('imported-cost-')).length, 74);
+
+  const galvanizedSpecs = getSpecificationsForCategory(galvanizedPipe.id);
+  assert.equal(galvanizedSpecs.length, 7);
+  assert.ok(galvanizedSpecs.some((item) => (
+    item.name === 'DN80' && item.unit === 'm' && item.price === 107.32
+  )));
+
+  const waterMeterSpecs = getSpecificationsForCategory(waterMeter.id);
+  assert.ok(waterMeterSpecs.some((item) => item.name === 'DN25(螺纹连接)（个）' && item.price === 145.19));
+  assert.ok(waterMeterSpecs.some((item) => item.name === 'DN25(螺纹连接)（组）' && item.price === 158.21));
+
+  const boxSpec = getSpecificationsForCategory(fireExtinguisherBox.id).find((item) => item.name === '4KG×2个+2装');
+  assert.equal(boxSpec.unit, '套');
+  assert.equal(boxSpec.price, 128.03);
 });
 
 test('throws clear errors for unknown category or specification', () => {
