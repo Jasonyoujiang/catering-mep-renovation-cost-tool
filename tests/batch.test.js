@@ -4,6 +4,7 @@ const assert = require('node:assert/strict');
 const {
   BATCH_TEMPLATE_HEADERS,
   BATCH_OUTPUT_HEADERS,
+  EXISTING_CABLE_POWER_KW,
   EXISTING_CABLE_SPEC_OPTIONS,
   EXISTING_DRAINAGE_PIPE_OPTIONS,
   EXISTING_WATER_PIPE_OPTIONS,
@@ -51,6 +52,21 @@ test('defines selectable existing cable specifications for the Excel template', 
     '4×185+1×95',
     '4×240+1×120',
   ]);
+
+  assert.deepEqual(EXISTING_CABLE_POWER_KW, {
+    '5×6': 15,
+    '4×10+1×6': 30,
+    '4×16+1×10': 45,
+    '4×25+1×16': 30,
+    '4×35+1×16': 70,
+    '4×50+1×25': 90,
+    '4×70+1×35': 110,
+    '4×95+1×50': 130,
+    '4×120+1×70': 160,
+    '4×150+1×70': 200,
+    '4×185+1×95': 260,
+    '4×240+1×120': 320,
+  });
 });
 
 test('defines selectable existing pipe specifications for the Excel template', () => {
@@ -138,7 +154,7 @@ test('builds batch MEP condition rows from uploaded shop records', () => {
   assert.equal(rows[0].现状排水管径, 'DN110');
   assert.equal(rows[0].现状油烟管尺寸, '500×400');
   assert.equal(rows[0].估算用电负荷, '48 kW');
-  assert.equal(rows[0].配套电缆规格, 'YJV 4×25+1×16mm²');
+  assert.equal(rows[0].配套电缆规格, '无需新增电缆');
   assert.equal(rows[0].供水管径, 'DN40');
   assert.equal(rows[0].排水管径, 'DN160');
   assert.equal(rows[0].排油烟风量, '3840 m3/h');
@@ -150,6 +166,34 @@ test('builds batch MEP condition rows from uploaded shop records', () => {
 
   assert.equal(rows[1].估算用电负荷, '90 kW');
   assert.equal(rows[1].指定用电量, 90);
+});
+
+test('deducts existing cable capacity before selecting additional cable', () => {
+  const rows = buildBatchPlanRows([
+    {
+      商铺编号: 'L1-301',
+      楼层: 'L1',
+      业态类型: '普通餐饮',
+      面积: 300,
+      指定用电量: '',
+      现状电缆1: '4×50+1×25',
+      现状电缆2: '',
+    },
+    {
+      商铺编号: 'L2-302',
+      楼层: 'L2',
+      业态类型: '普通餐饮',
+      面积: 300,
+      指定用电量: '',
+      现状电缆1: '4×50+1×25',
+      现状电缆2: '4×35+1×16',
+    },
+  ]);
+
+  assert.equal(rows[0].估算用电负荷, '120 kW');
+  assert.equal(rows[0].配套电缆规格, 'YJV 4×10+1×6mm²');
+  assert.equal(rows[1].估算用电负荷, '120 kW');
+  assert.equal(rows[1].配套电缆规格, '无需新增电缆');
 });
 
 test('allows missing area for batch rows when specified demand is filled', () => {

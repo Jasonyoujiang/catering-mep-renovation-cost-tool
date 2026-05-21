@@ -2,6 +2,9 @@
   const rules = typeof require === 'function'
     ? require('./rules.js')
     : global.MepRenovationRules;
+  const cableTable = typeof require === 'function'
+    ? require('./cable-table.js')
+    : global.MepCableTable;
 
   const BATCH_TEMPLATE_HEADERS = [
     '商铺编号',
@@ -30,6 +33,21 @@
     '4×185+1×95',
     '4×240+1×120',
   ];
+
+  const EXISTING_CABLE_POWER_KW = {
+    '5×6': 15,
+    '4×10+1×6': 30,
+    '4×16+1×10': 45,
+    '4×25+1×16': 30,
+    '4×35+1×16': 70,
+    '4×50+1×25': 90,
+    '4×70+1×35': 110,
+    '4×95+1×50': 130,
+    '4×120+1×70': 160,
+    '4×150+1×70': 200,
+    '4×185+1×95': 260,
+    '4×240+1×120': 320,
+  };
 
   const EXISTING_WATER_PIPE_OPTIONS = [
     'DN15',
@@ -114,6 +132,46 @@
     return demand;
   }
 
+  function normalizeExistingCableSpec(value) {
+    return normalizeText(value)
+      .replace(/^YJV\s*/i, '')
+      .replace(/mm²|mm2/gi, '')
+      .replace(/\s+/g, '')
+      .replace(/[xX*]/g, '×');
+  }
+
+  function getExistingCablePowerKw(value) {
+    return EXISTING_CABLE_POWER_KW[normalizeExistingCableSpec(value)] || 0;
+  }
+
+  function calculateExistingCablePowerKw(row) {
+    return getExistingCablePowerKw(row.现状电缆1) + getExistingCablePowerKw(row.现状电缆2);
+  }
+
+  function formatSelectedCable(selection) {
+    if (selection.isOutOfRange) {
+      return selection.recommendedCable;
+    }
+
+    return cableTable.formatYjvCableSpecification(selection.recommendedCable);
+  }
+
+  function resolveAdditionalCableValue(plan, row) {
+    const existingCablePowerKw = calculateExistingCablePowerKw(row);
+
+    if (existingCablePowerKw <= 0) {
+      return plan.items.electricalCable.value;
+    }
+
+    const remainingDemandKw = plan.items.electricalLoad.numericValue - existingCablePowerKw;
+
+    if (remainingDemandKw <= 0) {
+      return '无需新增电缆';
+    }
+
+    return formatSelectedCable(cableTable.selectCableByDemandKw(remainingDemandKw));
+  }
+
   function createEmptyResult(row, errors) {
     const result = {};
     BATCH_OUTPUT_HEADERS.forEach((header) => {
@@ -178,7 +236,7 @@
       现状排水管径: normalizeText(row.现状排水管径),
       现状油烟管尺寸: normalizeText(row.现状油烟管尺寸),
       估算用电负荷: plan.items.electricalLoad.value,
-      配套电缆规格: plan.items.electricalCable.value,
+      配套电缆规格: resolveAdditionalCableValue(plan, row),
       供水管径: plan.items.water?.value || '',
       排水管径: plan.items.drainage?.value || '',
       排油烟风量: plan.items.exhaust?.value || '',
@@ -236,6 +294,7 @@
   const api = {
     BATCH_TEMPLATE_HEADERS,
     BATCH_OUTPUT_HEADERS,
+    EXISTING_CABLE_POWER_KW,
     EXISTING_CABLE_SPEC_OPTIONS,
     EXISTING_WATER_PIPE_OPTIONS,
     EXISTING_DRAINAGE_PIPE_OPTIONS,
