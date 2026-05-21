@@ -4,6 +4,7 @@ const assert = require('node:assert/strict');
 const {
   BATCH_TEMPLATE_HEADERS,
   BATCH_OUTPUT_HEADERS,
+  EXISTING_CABLE_SPEC_OPTIONS,
   buildBatchPlanRows,
   createTemplateRows,
   resolveDiningTypeId,
@@ -16,7 +17,8 @@ test('defines the first-version batch Excel template headers', () => {
     '业态类型',
     '面积',
     '指定用电量',
-    '现状电缆规格',
+    '现状电缆1',
+    '现状电缆2',
     '现状给水管径',
     '现状排水管径',
     '现状油烟管尺寸',
@@ -26,8 +28,27 @@ test('defines the first-version batch Excel template headers', () => {
   assert.equal(BATCH_OUTPUT_HEADERS.includes('测算依据'), false);
   assert.equal(BATCH_OUTPUT_HEADERS.includes('是否启用指定用电量'), false);
   assert.equal(BATCH_OUTPUT_HEADERS.includes('指定用电量'), true);
-  assert.equal(BATCH_OUTPUT_HEADERS.includes('现状电缆规格'), true);
+  assert.equal(BATCH_OUTPUT_HEADERS.includes('现状电缆规格'), false);
+  assert.equal(BATCH_OUTPUT_HEADERS.includes('现状电缆1'), true);
+  assert.equal(BATCH_OUTPUT_HEADERS.includes('现状电缆2'), true);
   assert.equal(BATCH_OUTPUT_HEADERS.includes('现状油烟管尺寸'), true);
+});
+
+test('defines selectable existing cable specifications for the Excel template', () => {
+  assert.deepEqual(EXISTING_CABLE_SPEC_OPTIONS, [
+    '5×6',
+    '4×10+1×6',
+    '4×16+1×10',
+    '4×25+1×16',
+    '4×35+1×16',
+    '4×50+1×25',
+    '4×70+1×35',
+    '4×95+1×50',
+    '4×120+1×70',
+    '4×150+1×70',
+    '4×185+1×95',
+    '4×240+1×120',
+  ]);
 });
 
 test('creates template example rows with the renamed shop and business type fields', () => {
@@ -37,13 +58,15 @@ test('creates template example rows with the renamed shop and business type fiel
   assert.equal(Object.hasOwn(rows[0], '商铺编号'), true);
   assert.equal(Object.hasOwn(rows[0], '楼层'), true);
   assert.equal(Object.hasOwn(rows[0], '业态类型'), true);
-  assert.equal(Object.hasOwn(rows[0], '现状电缆规格'), true);
+  assert.equal(Object.hasOwn(rows[0], '现状电缆1'), true);
+  assert.equal(Object.hasOwn(rows[0], '现状电缆2'), true);
   assert.equal(Object.hasOwn(rows[0], '现状给水管径'), true);
   assert.equal(Object.hasOwn(rows[0], '现状排水管径'), true);
   assert.equal(Object.hasOwn(rows[0], '现状油烟管尺寸'), true);
   assert.equal(Object.hasOwn(rows[0], '餐饮类型'), false);
   assert.equal(Object.hasOwn(rows[0], '商铺名称'), false);
-  assert.equal(rows[0].现状电缆规格, null);
+  assert.equal(rows[0].现状电缆1, null);
+  assert.equal(rows[0].现状电缆2, null);
   assert.equal(rows[0].现状给水管径, null);
   assert.equal(rows[0].现状排水管径, null);
   assert.equal(rows[0].现状油烟管尺寸, null);
@@ -67,7 +90,8 @@ test('builds batch MEP condition rows from uploaded shop records', () => {
       业态类型: '普通餐饮',
       面积: 120,
       指定用电量: '',
-      现状电缆规格: 'YJV 4×16+1×10mm²',
+      现状电缆1: '4×16+1×10',
+      现状电缆2: '4×10+1×6',
       现状给水管径: 'DN25',
       现状排水管径: 'DN110',
       现状油烟管尺寸: '500×400',
@@ -85,7 +109,8 @@ test('builds batch MEP condition rows from uploaded shop records', () => {
   assert.equal(rows[0].商铺编号, 'L1-101');
   assert.equal(rows[0].楼层, 'L1');
   assert.equal(rows[0].业态类型, '普通餐饮');
-  assert.equal(rows[0].现状电缆规格, 'YJV 4×16+1×10mm²');
+  assert.equal(rows[0].现状电缆1, '4×16+1×10');
+  assert.equal(rows[0].现状电缆2, '4×10+1×6');
   assert.equal(rows[0].现状给水管径, 'DN25');
   assert.equal(rows[0].现状排水管径, 'DN110');
   assert.equal(rows[0].现状油烟管尺寸, '500×400');

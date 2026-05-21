@@ -295,7 +295,8 @@
       业态类型: 14,
       面积: 12,
       指定用电量: 14,
-      现状电缆规格: 22,
+      现状电缆1: 18,
+      现状电缆2: 18,
       现状给水管径: 16,
       现状排水管径: 16,
       现状油烟管尺寸: 18,
@@ -311,7 +312,8 @@
       业态类型: 14,
       面积: 12,
       指定用电量: 14,
-      现状电缆规格: 22,
+      现状电缆1: 18,
+      现状电缆2: 18,
       现状给水管径: 16,
       现状排水管径: 16,
       现状油烟管尺寸: 18,
@@ -367,6 +369,32 @@
     }
   }
 
+  function getColumnLetter(columnNumber) {
+    let letter = '';
+    let number = columnNumber;
+
+    while (number > 0) {
+      const remainder = (number - 1) % 26;
+      letter = String.fromCharCode(65 + remainder) + letter;
+      number = Math.floor((number - 1) / 26);
+    }
+
+    return letter;
+  }
+
+  function getHeaderColumnLetter(headers, header) {
+    const index = headers.indexOf(header);
+    return index >= 0 ? getColumnLetter(index + 1) : null;
+  }
+
+  function addListValidation(worksheet, range, list, allowBlank) {
+    worksheet.dataValidations.add(range, {
+      type: 'list',
+      allowBlank,
+      formulae: [`"${list.join(',')}"`],
+    });
+  }
+
   function createStyledWorkbook(ExcelJS, rows, headers, sheetName, options = {}) {
     const workbook = new ExcelJS.Workbook();
     workbook.creator = '商铺机电改造方案与成本测算程序';
@@ -383,7 +411,7 @@
     }));
     worksheet.autoFilter = {
       from: 'A1',
-      to: `${String.fromCharCode(64 + headers.length)}1`,
+      to: `${getColumnLetter(headers.length)}1`,
     };
 
     rows.forEach((row) => worksheet.addRow(row));
@@ -403,10 +431,27 @@
     }
 
     if (options.withTemplateValidations) {
-      worksheet.dataValidations.add('C2:C500', {
-        type: 'list',
-        allowBlank: false,
-        formulae: ['"轻餐,普通餐饮,重油烟餐饮,零售,生活服务,超市"'],
+      const businessTypeColumn = getHeaderColumnLetter(headers, '业态类型');
+      const existingCableColumns = ['现状电缆1', '现状电缆2']
+        .map((header) => getHeaderColumnLetter(headers, header))
+        .filter(Boolean);
+
+      if (businessTypeColumn) {
+        addListValidation(
+          worksheet,
+          `${businessTypeColumn}2:${businessTypeColumn}500`,
+          ['轻餐', '普通餐饮', '重油烟餐饮', '零售', '生活服务', '超市'],
+          false
+        );
+      }
+
+      existingCableColumns.forEach((column) => {
+        addListValidation(
+          worksheet,
+          `${column}2:${column}500`,
+          batch.EXISTING_CABLE_SPEC_OPTIONS,
+          true
+        );
       });
     }
 

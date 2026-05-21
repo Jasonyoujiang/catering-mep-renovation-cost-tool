@@ -117,13 +117,15 @@ test('builds cost result rows from a selected category and specification', () =>
 test('sets readable Excel template column widths for long headers', () => {
   assert.equal(getTemplateColumnWidth('商铺编号'), 14);
   assert.equal(getTemplateColumnWidth('指定用电量'), 14);
-  assert.equal(getTemplateColumnWidth('现状电缆规格'), 22);
+  assert.equal(getTemplateColumnWidth('现状电缆1'), 18);
+  assert.equal(getTemplateColumnWidth('现状电缆2'), 18);
   assert.equal(getTemplateColumnWidth('未知字段'), 14);
 });
 
 test('sets Excel result widths for key output fields', () => {
   assert.equal(getResultColumnWidth('错误说明'), 36);
   assert.equal(getResultColumnWidth('配套电缆规格'), 24);
+  assert.equal(getResultColumnWidth('现状电缆1'), 18);
   assert.equal(getResultColumnWidth('现状油烟管尺寸'), 18);
   assert.equal(getResultColumnWidth('商铺编号'), 14);
 });
