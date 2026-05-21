@@ -12,11 +12,18 @@ test('returns first-version expandable cost categories', () => {
   const categories = getCostCategories();
 
   assert.deepEqual(
-    categories.slice(0, 5).map((item) => item.id),
-    ['cable', 'stainlessDuct', 'galvanizedDuct', 'exhaustFan', 'oilSmokePurifier']
+    categories.slice(0, 6).map((item) => item.id),
+    [
+      'cable',
+      'stainlessDuct',
+      'galvanizedDuct',
+      'exhaustFan',
+      'oilSmokePurifier',
+      'renovationUnitPriceSummary',
+    ]
   );
   assert.equal(categories[0].name, '电缆');
-  assert.ok(categories.length > 5);
+  assert.ok(categories.length > 6);
 });
 
 test('returns specifications for a selected category', () => {
@@ -112,6 +119,34 @@ test('loads imported mechanical cost menu workbook items into cost lookup', () =
   const boxSpec = getSpecificationsForCategory(fireExtinguisherBox.id).find((item) => item.name === '4KG×2个+2装');
   assert.equal(boxSpec.unit, '套');
   assert.equal(boxSpec.price, 128.03);
+});
+
+test('loads renovation unit price summary after oil smoke purifier', () => {
+  const categories = getCostCategories();
+  const purifierIndex = categories.findIndex((item) => item.id === 'oilSmokePurifier');
+  const category = categories[purifierIndex + 1];
+
+  assert.equal(category.id, 'renovationUnitPriceSummary');
+  assert.equal(category.name, '改造项单方造价');
+
+  const specs = getSpecificationsForCategory(category.id);
+  assert.equal(specs.length, 12);
+  assert.deepEqual(
+    specs.slice(0, 3).map((item) => item.name),
+    ['废水排水管/排水条件', '消防水/喷淋消火栓调整', '消防防排烟系统调整']
+  );
+
+  const drainage = findCostItem(category.id, 'renovation-unit-price-001');
+  assert.equal(drainage.unit, '㎡');
+  assert.equal(drainage.price, 46.154);
+  assert.equal(drainage.sampleCount, 13);
+  assert.deepEqual(drainage.observedRange, [40, 70]);
+  assert.ok(drainage.remark.includes('频次2次以上'));
+
+  const dispatchCost = findCostItem(category.id, 'renovation-unit-price-005');
+  assert.equal(dispatchCost.name, '调商/招调费用');
+  assert.equal(dispatchCost.unit, '项');
+  assert.equal(dispatchCost.price, 560000);
 });
 
 test('throws clear errors for unknown category or specification', () => {

@@ -115,6 +115,18 @@ test('builds cost result rows from a selected category and specification', () =>
   ]);
 });
 
+test('builds cost result rows for renovation unit price summary items', () => {
+  const rows = buildCostResultRows('renovationUnitPriceSummary', 'renovation-unit-price-001');
+
+  assert.deepEqual(rows, [
+    ['子项名称', '改造项单方造价'],
+    ['规格型号', '废水排水管/排水条件'],
+    ['计量单位', '㎡'],
+    ['参考单价', '¥46.15'],
+    ['价格说明', '来源：改造项单方造价整合汇总_频次2次以上_倍差小于3.xlsx；按整合改造项+计价单位统计平均单价，样本13条，样本单价区间约 ¥40-¥70/㎡；已过滤频次低于2次及倍差大于等于3的项目。'],
+  ]);
+});
+
 test('sets readable Excel template column widths for long headers', () => {
   assert.equal(getTemplateColumnWidth('商铺编号'), 14);
   assert.equal(getTemplateColumnWidth('指定用电量'), 14);

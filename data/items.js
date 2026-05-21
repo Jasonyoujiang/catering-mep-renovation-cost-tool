@@ -2,6 +2,9 @@
   const importedCostMenu = typeof require === 'function'
     ? require('./imported-cost-menu.js')
     : global.MepImportedCostMenu;
+  const renovationUnitPriceSummary = typeof require === 'function'
+    ? require('./renovation-unit-price-summary.js')
+    : global.MepRenovationUnitPriceSummary;
   const CABLE_COST_COEFFICIENT = 1.4;
   const CABLE_METER_COST_LIST = [
     { id: 'yjv-4x6-1x4', specification: '4×6+1×4', basePrice: 38.76 },
@@ -171,6 +174,11 @@
       ),
     },
   };
+
+  if (renovationUnitPriceSummary?.RENOVATION_UNIT_PRICE_CATEGORY) {
+    const category = renovationUnitPriceSummary.RENOVATION_UNIT_PRICE_CATEGORY;
+    COST_CATALOG[category.id] = category;
+  }
 
   (importedCostMenu?.IMPORTED_COST_MENU_CATEGORIES || []).forEach((category) => {
     COST_CATALOG[category.id] = category;
