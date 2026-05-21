@@ -5,6 +5,8 @@ const {
   BATCH_TEMPLATE_HEADERS,
   BATCH_OUTPUT_HEADERS,
   EXISTING_CABLE_SPEC_OPTIONS,
+  EXISTING_DRAINAGE_PIPE_OPTIONS,
+  EXISTING_WATER_PIPE_OPTIONS,
   buildBatchPlanRows,
   createTemplateRows,
   resolveDiningTypeId,
@@ -48,6 +50,27 @@ test('defines selectable existing cable specifications for the Excel template', 
     '4×150+1×70',
     '4×185+1×95',
     '4×240+1×120',
+  ]);
+});
+
+test('defines selectable existing pipe specifications for the Excel template', () => {
+  assert.deepEqual(EXISTING_WATER_PIPE_OPTIONS, [
+    'DN15',
+    'DN20',
+    'DN25',
+    'DN32',
+    'DN40',
+    'DN50',
+    'DN65',
+  ]);
+
+  assert.deepEqual(EXISTING_DRAINAGE_PIPE_OPTIONS, [
+    'DN50',
+    'DN75',
+    'DN100',
+    'DN110',
+    'DN150',
+    'DN200',
   ]);
 });
 

@@ -31,6 +31,25 @@
     '4×240+1×120',
   ];
 
+  const EXISTING_WATER_PIPE_OPTIONS = [
+    'DN15',
+    'DN20',
+    'DN25',
+    'DN32',
+    'DN40',
+    'DN50',
+    'DN65',
+  ];
+
+  const EXISTING_DRAINAGE_PIPE_OPTIONS = [
+    'DN50',
+    'DN75',
+    'DN100',
+    'DN110',
+    'DN150',
+    'DN200',
+  ];
+
   const BATCH_OUTPUT_HEADERS = [
     ...BATCH_TEMPLATE_HEADERS,
     '估算用电负荷',
@@ -218,6 +237,8 @@
     BATCH_TEMPLATE_HEADERS,
     BATCH_OUTPUT_HEADERS,
     EXISTING_CABLE_SPEC_OPTIONS,
+    EXISTING_WATER_PIPE_OPTIONS,
+    EXISTING_DRAINAGE_PIPE_OPTIONS,
     buildBatchPlanRows,
     createTemplateRows,
     resolveDiningTypeId,

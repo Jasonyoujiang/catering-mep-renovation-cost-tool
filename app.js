@@ -435,6 +435,8 @@
       const existingCableColumns = ['现状电缆1', '现状电缆2']
         .map((header) => getHeaderColumnLetter(headers, header))
         .filter(Boolean);
+      const existingWaterPipeColumn = getHeaderColumnLetter(headers, '现状给水管径');
+      const existingDrainagePipeColumn = getHeaderColumnLetter(headers, '现状排水管径');
 
       if (businessTypeColumn) {
         addListValidation(
@@ -453,6 +455,24 @@
           true
         );
       });
+
+      if (existingWaterPipeColumn) {
+        addListValidation(
+          worksheet,
+          `${existingWaterPipeColumn}2:${existingWaterPipeColumn}500`,
+          batch.EXISTING_WATER_PIPE_OPTIONS,
+          true
+        );
+      }
+
+      if (existingDrainagePipeColumn) {
+        addListValidation(
+          worksheet,
+          `${existingDrainagePipeColumn}2:${existingDrainagePipeColumn}500`,
+          batch.EXISTING_DRAINAGE_PIPE_OPTIONS,
+          true
+        );
+      }
     }
 
     return workbook;
