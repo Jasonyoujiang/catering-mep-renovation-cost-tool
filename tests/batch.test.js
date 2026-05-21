@@ -43,6 +43,10 @@ test('creates template example rows with the renamed shop and business type fiel
   assert.equal(Object.hasOwn(rows[0], '现状油烟管尺寸'), true);
   assert.equal(Object.hasOwn(rows[0], '餐饮类型'), false);
   assert.equal(Object.hasOwn(rows[0], '商铺名称'), false);
+  assert.equal(rows[0].现状电缆规格, null);
+  assert.equal(rows[0].现状给水管径, null);
+  assert.equal(rows[0].现状排水管径, null);
+  assert.equal(rows[0].现状油烟管尺寸, null);
 });
 
 test('resolves supported business type names for batch import', () => {
