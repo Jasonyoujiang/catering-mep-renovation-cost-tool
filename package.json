@@ -3,7 +3,61 @@
   "version": "0.1.0",
   "private": true,
   "description": "商铺机电改造方案与成本测算本地工具",
+  "author": "Jason Youjiang",
+  "main": "electron/main.cjs",
   "scripts": {
-    "test": "node --test tests/*.test.js"
+    "start": "electron .",
+    "test": "node --test tests/*.test.js",
+    "pack:mac": "electron-builder --mac dmg",
+    "pack:win": "electron-builder --win nsis --x64",
+    "pack:all": "npm run pack:mac && npm run pack:win"
+  },
+  "build": {
+    "appId": "com.jasonyoujiang.catering-mep-renovation-cost-tool",
+    "productName": "商铺机电改造方案与成本测算",
+    "copyright": "Copyright © 2026 Jason Youjiang",
+    "asar": true,
+    "afterPack": "build/after-pack.cjs",
+    "files": [
+      "index.html",
+      "styles.css",
+      "app.js",
+      "build/**/*",
+      "data/**/*",
+      "vendor/**/*",
+      "electron/**/*",
+      "README.md"
+    ],
+    "directories": {
+      "output": "dist"
+    },
+    "mac": {
+      "target": [
+        "dmg"
+      ],
+      "category": "public.app-category.business",
+      "identity": null,
+      "artifactName": "${productName}-${version}-mac.${ext}"
+    },
+    "dmg": {
+      "artifactName": "${productName}-${version}-mac.${ext}"
+    },
+    "win": {
+      "target": [
+        "nsis"
+      ],
+      "artifactName": "${productName}-${version}-win-${arch}.${ext}"
+    },
+    "nsis": {
+      "oneClick": false,
+      "allowToChangeInstallationDirectory": true,
+      "createDesktopShortcut": true,
+      "createStartMenuShortcut": true,
+      "shortcutName": "商铺机电改造方案与成本测算"
+    }
+  },
+  "devDependencies": {
+    "electron": "^42.3.1",
+    "electron-builder": "^26.8.1"
   }
 }

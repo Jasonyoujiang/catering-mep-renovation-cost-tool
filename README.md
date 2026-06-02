@@ -11,7 +11,47 @@
 
 ## 使用方式
 
-直接打开 `index.html` 即可使用。
+直接打开 `index.html` 即可使用。当前版本已把 Excel 处理组件放在 `vendor/` 目录，日常测算、模板下载和批量结果生成不依赖外网。
+
+也可以双击桌面上的 `启动机电成本查询.command`，程序会自动在浏览器中打开。
+
+## 桌面安装包
+
+本项目已增加 Electron 桌面壳，可分别生成 MacBook 和 Windows 安装包。
+
+首次构建前安装依赖：
+
+```bash
+npm install
+```
+
+本地预览桌面程序：
+
+```bash
+npm start
+```
+
+生成 MacBook 安装包：
+
+```bash
+npm run pack:mac
+```
+
+生成 Windows 安装包：
+
+```bash
+npm run pack:win
+```
+
+一次性生成两个平台安装包：
+
+```bash
+npm run pack:all
+```
+
+安装包输出到 `dist/` 目录。MacBook 产物为 `.dmg`，Windows 产物为 `.exe` 安装程序。
+
+当前安装包按内部自用口径构建，未接入 Apple Developer 公证和 Windows 商业代码签名证书。首次安装或打开时，系统可能出现安全提示；确认来源为本仓库构建产物后再允许打开。
 
 如需运行测试：
 
@@ -51,11 +91,16 @@ npm test
 ├── index.html
 ├── styles.css
 ├── app.js
+├── electron/
+│   └── main.cjs
 ├── data/
 │   ├── cable-table.js
 │   ├── batch.js
 │   ├── items.js
 │   └── rules.js
+├── vendor/
+│   ├── exceljs.min.js
+│   └── xlsx.full.min.js
 └── tests/
 ```
 
