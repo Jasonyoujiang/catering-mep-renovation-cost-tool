@@ -264,11 +264,11 @@ test('adds fill color reuse explanations below result rows', () => {
   assert.equal(worksheet.getCell('A4').value, '填充颜色说明');
   assert.equal(worksheet.getCell('A5').value, '黄色');
   assert.equal(worksheet.getCell('A5').fill.fgColor.argb, 'FFFFF2CC');
-  assert.match(worksheet.getCell('B5').value, /^利旧情况：.*仍需新增/);
+  assert.equal(worksheet.getCell('B5').value, '可部分利旧；仍需新增或调整，黄色单元格内容为建议新增内容，需结合现场条件复核。');
   assert.equal(worksheet.getCell('A6').value, '淡蓝色');
   assert.equal(worksheet.getCell('A6').fill.fgColor.argb, 'FFDDEBF7');
-  assert.match(worksheet.getCell('B6').value, /^利旧情况：.*完全利旧/);
+  assert.equal(worksheet.getCell('B6').value, '可以完全利旧，现状条件可满足需求；计算结果为“无需新增”。');
   assert.equal(worksheet.getCell('A7').value, '普通底色');
   assert.equal(worksheet.getCell('A7').fill.fgColor.argb, 'FFF8FAF7');
-  assert.match(worksheet.getCell('B7').value, /^利旧情况：.*暂未考虑利旧/);
+  assert.equal(worksheet.getCell('B7').value, '无法利旧；按当前计算规则直接生成配置建议。');
 });
