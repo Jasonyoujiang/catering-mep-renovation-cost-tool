@@ -519,11 +519,62 @@
     });
   }
 
+  function addResultFillLegend(worksheet, headers, dataRowCount) {
+    const lastColumnNumber = headers.length;
+    const titleRowNumber = dataRowCount + 3;
+    const legendItems = [
+      {
+        label: '黄色',
+        fillColor: 'FFFFF2CC',
+        description: '利旧情况：已录入现状条件，可部分利旧；仍需新增或调整，黄色单元格内容为建议新增内容，需结合现场条件复核。',
+      },
+      {
+        label: '淡蓝色',
+        fillColor: 'FFDDEBF7',
+        description: '利旧情况：现状条件可满足需求，可以完全利旧；计算结果为“无需新增”。',
+      },
+      {
+        label: '普通底色',
+        fillColor: 'FFF8FAF7',
+        description: '利旧情况：未录入对应现状条件，暂未考虑利旧；按当前计算规则直接生成配置建议。',
+      },
+    ];
+
+    worksheet.mergeCells(titleRowNumber, 1, titleRowNumber, lastColumnNumber);
+    const titleCell = worksheet.getCell(titleRowNumber, 1);
+    titleCell.value = '填充颜色说明';
+    applyTemplateCellStyle(titleCell, { isHeader: true });
+    titleCell.alignment = { horizontal: 'left', vertical: 'middle' };
+    worksheet.getRow(titleRowNumber).height = 28;
+
+    legendItems.forEach((item, index) => {
+      const rowNumber = titleRowNumber + index + 1;
+      worksheet.mergeCells(rowNumber, 2, rowNumber, lastColumnNumber);
+
+      const labelCell = worksheet.getCell(rowNumber, 1);
+      labelCell.value = item.label;
+      applyTemplateCellStyle(labelCell, { fillColor: item.fillColor });
+      labelCell.font = { ...labelCell.font, bold: true };
+
+      const descriptionCell = worksheet.getCell(rowNumber, 2);
+      descriptionCell.value = item.description;
+      applyTemplateCellStyle(descriptionCell, { fillColor: 'FFFFFFFF' });
+      descriptionCell.alignment = {
+        horizontal: 'left',
+        vertical: 'middle',
+        wrapText: true,
+      };
+      worksheet.getRow(rowNumber).height = 34;
+    });
+  }
+
   function createStyledResultWorkbook(ExcelJS, rows, headers, sheetName) {
-    return createStyledWorkbook(ExcelJS, rows, headers, sheetName, {
+    const workbook = createStyledWorkbook(ExcelJS, rows, headers, sheetName, {
       getColumnWidth: getResultColumnWidth,
       getCellFillColor: getBatchResultCellFillColor,
     });
+    addResultFillLegend(workbook.getWorksheet(sheetName), headers, rows.length);
+    return workbook;
   }
 
   function downloadWorkbookBuffer(buffer, fileName) {
@@ -692,6 +743,7 @@
     getResultColumnWidth,
     getBatchResultCellFillColor,
     applyTemplateCellStyle,
+    addResultFillLegend,
     createStyledWorkbook,
     createStyledTemplateWorkbook,
     createStyledResultWorkbook,

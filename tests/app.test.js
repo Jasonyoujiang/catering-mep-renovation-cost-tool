@@ -19,6 +19,7 @@ const {
   getBatchResultCellFillColor,
   applyTemplateCellStyle,
   createStyledTemplateWorkbook,
+  createStyledResultWorkbook,
 } = require('../app.js');
 
 test('validates a positive shop area input', () => {
@@ -239,4 +240,35 @@ test('styles all template columns with alternating fills through row 500', () =>
   assert.equal(worksheet.getCell('J3').fill.fgColor.argb, 'FFFFFFFF');
   assert.equal(worksheet.getCell('A500').fill.fgColor.argb, 'FFF8FAF7');
   assert.equal(worksheet.getCell('J500').fill.fgColor.argb, 'FFF8FAF7');
+});
+
+test('adds fill color reuse explanations below result rows', () => {
+  const ExcelJS = require('../vendor/exceljs.min.js');
+  const resultRows = global.MepBatchPlanner.buildBatchPlanRows([
+    {
+      楼层: 'L1',
+      商铺编号: 'L1-101',
+      业态类型: '零售',
+      面积: 100,
+      指定用电量: '',
+    },
+  ]);
+  const workbook = createStyledResultWorkbook(
+    ExcelJS,
+    resultRows,
+    global.MepBatchPlanner.BATCH_OUTPUT_HEADERS,
+    '机电条件测算结果'
+  );
+  const worksheet = workbook.getWorksheet('机电条件测算结果');
+
+  assert.equal(worksheet.getCell('A4').value, '填充颜色说明');
+  assert.equal(worksheet.getCell('A5').value, '黄色');
+  assert.equal(worksheet.getCell('A5').fill.fgColor.argb, 'FFFFF2CC');
+  assert.match(worksheet.getCell('B5').value, /^利旧情况：.*仍需新增/);
+  assert.equal(worksheet.getCell('A6').value, '淡蓝色');
+  assert.equal(worksheet.getCell('A6').fill.fgColor.argb, 'FFDDEBF7');
+  assert.match(worksheet.getCell('B6').value, /^利旧情况：.*完全利旧/);
+  assert.equal(worksheet.getCell('A7').value, '普通底色');
+  assert.equal(worksheet.getCell('A7').fill.fgColor.argb, 'FFF8FAF7');
+  assert.match(worksheet.getCell('B7').value, /^利旧情况：.*暂未考虑利旧/);
 });
