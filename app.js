@@ -568,12 +568,36 @@
     });
   }
 
+  function addGeneratedOutputGroupBorders(worksheet, headers, dataRowCount) {
+    const firstColumnNumber = headers.indexOf('配套电缆规格') + 1;
+    const lastColumnNumber = headers.indexOf('占用隔油池容积') + 1;
+
+    if (firstColumnNumber <= 0 || lastColumnNumber <= 0) {
+      return;
+    }
+
+    for (let rowNumber = 1; rowNumber <= dataRowCount + 1; rowNumber += 1) {
+      const firstCell = worksheet.getCell(rowNumber, firstColumnNumber);
+      const lastCell = worksheet.getCell(rowNumber, lastColumnNumber);
+      firstCell.border = {
+        ...firstCell.border,
+        left: { style: 'medium', color: { argb: 'FF000000' } },
+      };
+      lastCell.border = {
+        ...lastCell.border,
+        right: { style: 'medium', color: { argb: 'FF000000' } },
+      };
+    }
+  }
+
   function createStyledResultWorkbook(ExcelJS, rows, headers, sheetName) {
     const workbook = createStyledWorkbook(ExcelJS, rows, headers, sheetName, {
       getColumnWidth: getResultColumnWidth,
       getCellFillColor: getBatchResultCellFillColor,
     });
-    addResultFillLegend(workbook.getWorksheet(sheetName), headers, rows.length);
+    const worksheet = workbook.getWorksheet(sheetName);
+    addGeneratedOutputGroupBorders(worksheet, headers, rows.length);
+    addResultFillLegend(worksheet, headers, rows.length);
     return workbook;
   }
 
@@ -744,6 +768,7 @@
     getBatchResultCellFillColor,
     applyTemplateCellStyle,
     addResultFillLegend,
+    addGeneratedOutputGroupBorders,
     createStyledWorkbook,
     createStyledTemplateWorkbook,
     createStyledResultWorkbook,

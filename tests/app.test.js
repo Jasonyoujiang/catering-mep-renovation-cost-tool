@@ -271,4 +271,13 @@ test('adds fill color reuse explanations below result rows', () => {
   assert.equal(worksheet.getCell('A7').value, '普通底色');
   assert.equal(worksheet.getCell('A7').fill.fgColor.argb, 'FFF8FAF7');
   assert.equal(worksheet.getCell('B7').value, '无法利旧；按当前计算规则直接生成配置建议。');
+
+  assert.equal(worksheet.getCell('L1').border.left.style, 'medium');
+  assert.equal(worksheet.getCell('L1').border.left.color.argb, 'FF000000');
+  assert.equal(worksheet.getCell('L2').border.left.style, 'medium');
+  assert.equal(worksheet.getCell('P1').border.right.style, 'medium');
+  assert.equal(worksheet.getCell('P1').border.right.color.argb, 'FF000000');
+  assert.equal(worksheet.getCell('P2').border.right.style, 'medium');
+  assert.equal(worksheet.getCell('L3').border?.left?.style, undefined);
+  assert.equal(worksheet.getCell('P3').border?.right?.style, undefined);
 });
