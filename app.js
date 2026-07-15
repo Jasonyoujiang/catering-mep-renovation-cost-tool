@@ -335,6 +335,10 @@
   }
 
   function getBatchResultCellFillColor(row, header) {
+    if (String(row?.[header] ?? '').trim() === batch.NO_ADDITION_VALUE) {
+      return 'FFDDEBF7';
+    }
+
     const highlightRules = {
       配套电缆规格: ['现状电缆1', '现状电缆2'],
       供水管径: ['现状给水管径'],
@@ -442,12 +446,14 @@
     headerRow.height = 30;
     headerRow.eachCell((cell) => applyTemplateCellStyle(cell, { isHeader: true }));
 
-    for (let rowNumber = 2; rowNumber <= rows.length + 1; rowNumber += 1) {
+    const lastStyledRowNumber = Math.max(rows.length + 1, options.lastStyledRowNumber || 1);
+
+    for (let rowNumber = 2; rowNumber <= lastStyledRowNumber; rowNumber += 1) {
       const row = worksheet.getRow(rowNumber);
       const sourceRow = rows[rowNumber - 2] || {};
       row.height = 26;
-      row.eachCell((cell) => {
-        const header = headers[cell.col - 1];
+      headers.forEach((header, columnIndex) => {
+        const cell = row.getCell(columnIndex + 1);
         const cellFillColor = options.getCellFillColor
           ? options.getCellFillColor(sourceRow, header)
           : null;
@@ -509,6 +515,7 @@
     return createStyledWorkbook(ExcelJS, rows, headers, sheetName, {
       getColumnWidth: getTemplateColumnWidth,
       withTemplateValidations: true,
+      lastStyledRowNumber: 500,
     });
   }
 
@@ -571,8 +578,8 @@
 
   function buildBatchPreviewRows(rows) {
     return rows.slice(0, 5).map((row) => [
-      row.商铺编号,
       row.楼层,
+      row.商铺编号,
       row.业态类型,
       row.面积,
       row.估算用电负荷,
@@ -636,7 +643,7 @@
       renderTable(
         output,
         'batch-table',
-        ['商铺编号', '楼层', '业态类型', '面积', '估算用电负荷', '配套电缆规格', '处理状态'],
+        ['楼层', '商铺编号', '业态类型', '面积', '估算用电负荷', '配套电缆规格', '处理状态'],
         buildBatchPreviewRows(resultRows)
       );
       setMessage(

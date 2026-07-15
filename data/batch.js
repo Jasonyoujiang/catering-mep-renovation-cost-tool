@@ -7,8 +7,8 @@
     : global.MepCableTable;
 
   const BATCH_TEMPLATE_HEADERS = [
-    '商铺编号',
     '楼层',
+    '商铺编号',
     '业态类型',
     '面积',
     '指定用电量',
@@ -18,6 +18,8 @@
     '现状排水管径',
     '现状油烟管尺寸',
   ];
+
+  const NO_ADDITION_VALUE = '无需新增';
 
   const EXISTING_CABLE_SPEC_OPTIONS = [
     '5×6',
@@ -166,7 +168,7 @@
     const remainingDemandKw = plan.items.electricalLoad.numericValue - existingCablePowerKw;
 
     if (remainingDemandKw <= 0) {
-      return '无需新增电缆';
+      return NO_ADDITION_VALUE;
     }
 
     return formatSelectedCable(cableTable.selectCableByDemandKw(remainingDemandKw));
@@ -223,10 +225,11 @@
     const plan = rules.calculateRenovationPlan(area, diningTypeId, {
       specifiedDemandKw: hasSpecifiedDemand ? specifiedDemand : null,
     });
+    const noAdditionalCateringSystemsRequired = !rules.DINING_TYPES[diningTypeId].isCatering;
 
     return {
-      商铺编号: normalizeText(row.商铺编号),
       楼层: normalizeText(row.楼层),
+      商铺编号: normalizeText(row.商铺编号),
       业态类型: plan.diningType.name,
       面积: area || '',
       指定用电量: hasSpecifiedDemand ? specifiedDemand : '',
@@ -237,10 +240,10 @@
       现状油烟管尺寸: normalizeText(row.现状油烟管尺寸),
       估算用电负荷: plan.items.electricalLoad.value,
       配套电缆规格: resolveAdditionalCableValue(plan, row),
-      供水管径: plan.items.water?.value || '',
-      排水管径: plan.items.drainage?.value || '',
-      排油烟风量: plan.items.exhaust?.value || '',
-      占用隔油池容积: plan.items.greaseTrap?.value || '',
+      供水管径: plan.items.water?.value || (noAdditionalCateringSystemsRequired ? NO_ADDITION_VALUE : ''),
+      排水管径: plan.items.drainage?.value || (noAdditionalCateringSystemsRequired ? NO_ADDITION_VALUE : ''),
+      排油烟风量: plan.items.exhaust?.value || (noAdditionalCateringSystemsRequired ? NO_ADDITION_VALUE : ''),
+      占用隔油池容积: plan.items.greaseTrap?.value || (noAdditionalCateringSystemsRequired ? NO_ADDITION_VALUE : ''),
       处理状态: '成功',
       错误说明: '',
     };
@@ -253,8 +256,8 @@
   function createTemplateRows() {
     return [
       {
-        商铺编号: 'L1-101',
         楼层: 'L1',
+        商铺编号: 'L1-101',
         业态类型: '普通餐饮',
         面积: 120,
         指定用电量: '',
@@ -265,8 +268,8 @@
         现状油烟管尺寸: null,
       },
       {
-        商铺编号: 'L2-205',
         楼层: 'L2',
+        商铺编号: 'L2-205',
         业态类型: '轻餐',
         面积: 80,
         指定用电量: 90,
@@ -277,8 +280,8 @@
         现状油烟管尺寸: null,
       },
       {
-        商铺编号: 'L3-301',
         楼层: 'L3',
+        商铺编号: 'L3-301',
         业态类型: '零售',
         面积: 200,
         指定用电量: '',
@@ -294,6 +297,7 @@
   const api = {
     BATCH_TEMPLATE_HEADERS,
     BATCH_OUTPUT_HEADERS,
+    NO_ADDITION_VALUE,
     EXISTING_CABLE_POWER_KW,
     EXISTING_CABLE_SPEC_OPTIONS,
     EXISTING_WATER_PIPE_OPTIONS,

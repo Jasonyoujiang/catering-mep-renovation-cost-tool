@@ -15,8 +15,8 @@ const {
 
 test('defines the first-version batch Excel template headers', () => {
   assert.deepEqual(BATCH_TEMPLATE_HEADERS, [
-    '商铺编号',
     '楼层',
+    '商铺编号',
     '业态类型',
     '面积',
     '指定用电量',
@@ -154,7 +154,7 @@ test('builds batch MEP condition rows from uploaded shop records', () => {
   assert.equal(rows[0].现状排水管径, 'DN110');
   assert.equal(rows[0].现状油烟管尺寸, '500×400');
   assert.equal(rows[0].估算用电负荷, '48 kW');
-  assert.equal(rows[0].配套电缆规格, '无需新增电缆');
+  assert.equal(rows[0].配套电缆规格, '无需新增');
   assert.equal(rows[0].供水管径, 'DN40');
   assert.equal(rows[0].排水管径, 'DN160');
   assert.equal(rows[0].排油烟风量, '3840 m3/h');
@@ -193,7 +193,7 @@ test('deducts existing cable capacity before selecting additional cable', () => 
   assert.equal(rows[0].估算用电负荷, '120 kW');
   assert.equal(rows[0].配套电缆规格, 'YJV 4×10+1×6mm²');
   assert.equal(rows[1].估算用电负荷, '120 kW');
-  assert.equal(rows[1].配套电缆规格, '无需新增电缆');
+  assert.equal(rows[1].配套电缆规格, '无需新增');
 });
 
 test('allows missing area for batch rows when specified demand is filled', () => {
@@ -252,12 +252,16 @@ test('builds non-catering batch rows with only electrical conditions filled', ()
 
   assert.equal(rows[0].估算用电负荷, '24 kW');
   assert.equal(rows[0].配套电缆规格, 'YJV 4×10+1×6mm²');
-  assert.equal(rows[0].供水管径, '');
-  assert.equal(rows[0].排水管径, '');
-  assert.equal(rows[0].排油烟风量, '');
-  assert.equal(rows[0].占用隔油池容积, '');
+  assert.equal(rows[0].供水管径, '无需新增');
+  assert.equal(rows[0].排水管径, '无需新增');
+  assert.equal(rows[0].排油烟风量, '无需新增');
+  assert.equal(rows[0].占用隔油池容积, '无需新增');
   assert.equal(rows[0].测算依据, undefined);
   assert.equal(rows[1].估算用电负荷, '30 kW');
+  assert.equal(rows[1].供水管径, '无需新增');
+  assert.equal(rows[1].排水管径, '无需新增');
+  assert.equal(rows[1].排油烟风量, '无需新增');
+  assert.equal(rows[1].占用隔油池容积, '无需新增');
   assert.equal(rows[1].测算依据, undefined);
 });
 

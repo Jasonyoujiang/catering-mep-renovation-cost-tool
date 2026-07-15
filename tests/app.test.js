@@ -3,6 +3,7 @@ const assert = require('node:assert/strict');
 
 global.MepRenovationRules = require('../data/rules.js');
 global.MepCostCatalog = require('../data/items.js');
+global.MepBatchPlanner = require('../data/batch.js');
 
 const {
   validateAreaInput,
@@ -17,6 +18,7 @@ const {
   getResultColumnWidth,
   getBatchResultCellFillColor,
   applyTemplateCellStyle,
+  createStyledTemplateWorkbook,
 } = require('../app.js');
 
 test('validates a positive shop area input', () => {
@@ -166,6 +168,23 @@ test('highlights generated result cells when existing conditions need review', (
   assert.equal(getBatchResultCellFillColor({ ...row, 现状油烟管尺寸: '' }, '排油烟风量'), null);
 });
 
+test('uses pale blue for every no-addition result', () => {
+  const row = {
+    现状电缆1: '4×50+1×25',
+    配套电缆规格: '无需新增',
+    供水管径: '无需新增',
+    排水管径: '无需新增',
+    排油烟风量: '无需新增',
+    占用隔油池容积: '无需新增',
+  };
+
+  assert.equal(getBatchResultCellFillColor(row, '配套电缆规格'), 'FFDDEBF7');
+  assert.equal(getBatchResultCellFillColor(row, '供水管径'), 'FFDDEBF7');
+  assert.equal(getBatchResultCellFillColor(row, '排水管径'), 'FFDDEBF7');
+  assert.equal(getBatchResultCellFillColor(row, '排油烟风量'), 'FFDDEBF7');
+  assert.equal(getBatchResultCellFillColor(row, '占用隔油池容积'), 'FFDDEBF7');
+});
+
 test('limits the batch preview table to five rows', () => {
   const rows = Array.from({ length: 6 }, (_, index) => ({
     商铺编号: `L1-${String(index + 1).padStart(3, '0')}`,
@@ -180,7 +199,7 @@ test('limits the batch preview table to five rows', () => {
   const previewRows = buildBatchPreviewRows(rows);
 
   assert.equal(previewRows.length, 5);
-  assert.equal(previewRows.at(-1)[0], 'L1-005');
+  assert.deepEqual(previewRows.at(-1).slice(0, 2), ['L1', 'L1-005']);
 });
 
 test('applies centered and colored styles to Excel template cells', () => {
@@ -200,4 +219,24 @@ test('applies centered and colored styles to Excel template cells', () => {
   assert.equal(headerCell.fill.fgColor.argb, 'FF14513F');
   assert.equal(bodyCell.fill.fgColor.argb, 'FFF8FAF7');
   assert.equal(bodyCell.font.name, 'Microsoft YaHei');
+});
+
+test('styles all template columns with alternating fills through row 500', () => {
+  const ExcelJS = require('../vendor/exceljs.min.js');
+  const workbook = createStyledTemplateWorkbook(
+    ExcelJS,
+    global.MepBatchPlanner.createTemplateRows(),
+    global.MepBatchPlanner.BATCH_TEMPLATE_HEADERS,
+    '商铺基础信息'
+  );
+  const worksheet = workbook.getWorksheet('商铺基础信息');
+
+  assert.equal(worksheet.getCell('A1').value, '楼层');
+  assert.equal(worksheet.getCell('B1').value, '商铺编号');
+  assert.equal(worksheet.getCell('A2').fill.fgColor.argb, 'FFF8FAF7');
+  assert.equal(worksheet.getCell('J2').fill.fgColor.argb, 'FFF8FAF7');
+  assert.equal(worksheet.getCell('A3').fill.fgColor.argb, 'FFFFFFFF');
+  assert.equal(worksheet.getCell('J3').fill.fgColor.argb, 'FFFFFFFF');
+  assert.equal(worksheet.getCell('A500').fill.fgColor.argb, 'FFF8FAF7');
+  assert.equal(worksheet.getCell('J500').fill.fgColor.argb, 'FFF8FAF7');
 });
