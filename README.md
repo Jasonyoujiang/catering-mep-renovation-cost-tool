@@ -19,6 +19,9 @@
 
 本项目已增加 Electron 桌面壳，可分别生成 MacBook 和 Windows 安装包。
 
+- [下载最新版 Mac 和 Windows 安装包](https://github.com/Jasonyoujiang/catering-mep-renovation-cost-tool/releases/latest)
+- [在线使用](https://jasonyoujiang.github.io/catering-mep-renovation-cost-tool/)
+
 首次构建前安装依赖：
 
 ```bash
