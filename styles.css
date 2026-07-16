@@ -522,15 +522,21 @@ button:active {
 }
 
 .notice-block {
-  border-left: 4px solid var(--amber);
+  border: 1px solid rgba(255, 255, 255, 0.76);
+  border-left: 4px solid #25806d;
   border-radius: 0 8px 8px 0;
-  background: var(--amber-soft);
-  padding: 15px 17px;
+  background:
+    linear-gradient(115deg, rgba(220, 240, 233, 0.78), rgba(225, 239, 248, 0.62)),
+    rgba(255, 255, 255, 0.48);
+  padding: 16px 18px;
+  box-shadow: 0 10px 26px rgba(36, 75, 64, 0.07), inset 0 1px 0 rgba(255, 255, 255, 0.82);
+  backdrop-filter: blur(18px) saturate(140%);
+  -webkit-backdrop-filter: blur(18px) saturate(140%);
 }
 
 .notice-block h3 {
   margin-bottom: 8px;
-  color: #3c2a17;
+  color: var(--accent-strong);
   font-size: 17px;
   font-weight: 820;
 }
@@ -538,8 +544,12 @@ button:active {
 .notice-block ul {
   margin: 0;
   padding-left: 20px;
-  color: #563415;
+  color: #28463e;
   line-height: 1.7;
+}
+
+.notice-block li::marker {
+  color: var(--accent-blue);
 }
 
 .cost-table th:first-child,
