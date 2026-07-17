@@ -349,9 +349,13 @@
       现状排水管径: 16,
       现状油烟管尺寸: 18,
       估算用电负荷: 16,
+      配置功率: 14,
       配套电缆规格: 24,
       配电箱编号: 16,
+      配电箱总功率: 18,
+      配电箱电缆规格: 28,
       变压器编号: 16,
+      变压器服务商铺总功率: 24,
       供水管径: 14,
       排水管径: 14,
       隔油池编号: 16,
@@ -827,8 +831,79 @@
     }
   }
 
-  function createSystemPlanWorkbook(ExcelJS, rows) {
-    return createStyledWorkbook(
+  function addSupplySystemPlanWorksheet(workbook, supplyPlan) {
+    const headers = systemPlan.SUPPLY_SYSTEM_PLAN_HEADERS;
+    const worksheet = addStyledWorksheet(
+      workbook,
+      supplyPlan.rows,
+      headers,
+      '供电系统',
+      {
+        getColumnWidth: getResultColumnWidth,
+        getCellFillColor: getBatchResultCellFillColor,
+        tabColor: 'FF347EA4',
+      }
+    );
+    const totalPowerColumn = headers.indexOf('配电箱总功率') + 1;
+    const cableColumn = headers.indexOf('配电箱电缆规格') + 1;
+
+    supplyPlan.boxGroups.forEach((group) => {
+      const startRow = group.startIndex + 2;
+      const endRow = group.endIndex + 2;
+
+      if (endRow > startRow) {
+        worksheet.mergeCells(startRow, totalPowerColumn, endRow, totalPowerColumn);
+        worksheet.mergeCells(startRow, cableColumn, endRow, cableColumn);
+      }
+
+      [totalPowerColumn, cableColumn].forEach((columnNumber) => {
+        const cell = worksheet.getCell(startRow, columnNumber);
+        cell.alignment = {
+          horizontal: 'center',
+          vertical: 'middle',
+          wrapText: true,
+        };
+        cell.font = { ...cell.font, bold: true };
+      });
+    });
+
+    const titleRowNumber = supplyPlan.rows.length + 3;
+    worksheet.mergeCells(titleRowNumber, 1, titleRowNumber, headers.length);
+    const titleCell = worksheet.getCell(titleRowNumber, 1);
+    titleCell.value = '变压器统计';
+    applyTemplateCellStyle(titleCell, { isHeader: true });
+    titleCell.alignment = { horizontal: 'left', vertical: 'middle' };
+    worksheet.getRow(titleRowNumber).height = 28;
+
+    const summaryHeaderRowNumber = titleRowNumber + 1;
+    worksheet.mergeCells(summaryHeaderRowNumber, 2, summaryHeaderRowNumber, 4);
+    const transformerHeaderCell = worksheet.getCell(summaryHeaderRowNumber, 1);
+    const totalHeaderCell = worksheet.getCell(summaryHeaderRowNumber, 2);
+    transformerHeaderCell.value = '变压器编号';
+    totalHeaderCell.value = '变压器服务商铺总功率';
+    applyTemplateCellStyle(transformerHeaderCell, { isHeader: true });
+    applyTemplateCellStyle(totalHeaderCell, { isHeader: true });
+    worksheet.getRow(summaryHeaderRowNumber).height = 28;
+
+    supplyPlan.transformerStats.forEach((stat, index) => {
+      const rowNumber = summaryHeaderRowNumber + index + 1;
+      worksheet.mergeCells(rowNumber, 2, rowNumber, 4);
+      const fillColor = rowNumber % 2 === 0 ? 'FFF8FAF7' : 'FFFFFFFF';
+      const transformerCell = worksheet.getCell(rowNumber, 1);
+      const totalCell = worksheet.getCell(rowNumber, 2);
+      transformerCell.value = stat.变压器编号;
+      totalCell.value = stat.变压器服务商铺总功率;
+      applyTemplateCellStyle(transformerCell, { fillColor });
+      applyTemplateCellStyle(totalCell, { fillColor });
+      totalCell.font = { ...totalCell.font, bold: true };
+      worksheet.getRow(rowNumber).height = 26;
+    });
+
+    return worksheet;
+  }
+
+  function createSystemPlanWorkbook(ExcelJS, rows, supplyPlan) {
+    const workbook = createStyledWorkbook(
       ExcelJS,
       rows,
       systemPlan.SYSTEM_PLAN_OUTPUT_HEADERS,
@@ -838,11 +913,17 @@
         tabColor: 'FF7566A8',
       }
     );
+
+    if (supplyPlan) {
+      addSupplySystemPlanWorksheet(workbook, supplyPlan);
+    }
+
+    return workbook;
   }
 
-  async function writeSystemPlanResultFile(rows, fileName) {
+  async function writeSystemPlanResultFile(rows, supplyPlan, fileName) {
     const ExcelJS = requireStyledWorkbookLibrary();
-    const workbook = createSystemPlanWorkbook(ExcelJS, rows);
+    const workbook = createSystemPlanWorkbook(ExcelJS, rows, supplyPlan);
     const buffer = await workbook.xlsx.writeBuffer();
     downloadWorkbookBuffer(buffer, fileName);
   }
@@ -851,9 +932,10 @@
     return rows.slice(0, 5).map((row) => [
       row.楼层,
       row.商铺编号,
-      row.业态类型,
-      row.面积,
-      row.处理状态,
+      row.配置功率,
+      row.配电箱编号,
+      row.配电箱总功率,
+      row.配电箱电缆规格,
     ]);
   }
 
@@ -879,22 +961,23 @@
       }
 
       const resultRows = systemPlan.buildSystemPlanRows(workbookData);
+      const supplyPlan = systemPlan.buildSupplySystemPlan(workbookData);
       if (resultRows.length === 0) {
         setMessage(message, '“机电条件测算结果”工作表中没有可处理的商铺数据。', 'error');
         return;
       }
 
       const fileName = `机电配置系统方案-${createTimestamp()}.xlsx`;
-      await writeSystemPlanResultFile(resultRows, fileName);
+      await writeSystemPlanResultFile(resultRows, supplyPlan, fileName);
       renderTable(
         output,
         'batch-table',
-        ['楼层', '商铺编号', '业态类型', '面积', '处理状态'],
-        buildSystemPlanPreviewRows(resultRows)
+        ['楼层', '商铺编号', '配置功率', '配电箱编号', '配电箱总功率', '配电箱电缆规格'],
+        buildSystemPlanPreviewRows(supplyPlan.rows)
       );
       setMessage(
         message,
-        `已读取 ${resultRows.length} 个商铺；模块4框架结果 Excel 已下载，计算规则待补充。`,
+        `已读取 ${resultRows.length} 个商铺，生成 ${supplyPlan.boxGroups.length} 个配电箱汇总和 ${supplyPlan.transformerStats.length} 个变压器统计；结果 Excel 已下载。`,
         'success'
       );
     } catch (error) {
@@ -950,6 +1033,7 @@
     createStyledWorkbook,
     createStyledTemplateWorkbook,
     createStyledResultWorkbook,
+    addSupplySystemPlanWorksheet,
     createSystemPlanWorkbook,
     buildPlanResultRows,
     buildCostResultRows,

@@ -213,15 +213,23 @@ test('limits the module 4 preview table to five rows', () => {
   const rows = Array.from({ length: 6 }, (_, index) => ({
     楼层: 'L1',
     商铺编号: String(1001 + index),
-    业态类型: '普通餐饮',
-    面积: 100,
-    处理状态: '待配置规则',
+    配置功率: '40 kW',
+    配电箱编号: 'AL-1',
+    配电箱总功率: '200 kW',
+    配电箱电缆规格: '2×(YJV 4×70+1×35mm²)',
   }));
 
   const previewRows = buildSystemPlanPreviewRows(rows);
 
   assert.equal(previewRows.length, 5);
-  assert.deepEqual(previewRows.at(-1), ['L1', '1005', '普通餐饮', 100, '待配置规则']);
+  assert.deepEqual(previewRows.at(-1), [
+    'L1',
+    '1005',
+    '40 kW',
+    'AL-1',
+    '200 kW',
+    '2×(YJV 4×70+1×35mm²)',
+  ]);
 });
 
 test('applies centered and colored styles to Excel template cells', () => {
@@ -454,9 +462,54 @@ test('creates a styled module 4 system plan workbook', () => {
   );
   assert.equal(worksheet.getCell('A2').value, 'L1');
   assert.equal(worksheet.getCell('B2').value, '1001');
-  assert.equal(worksheet.getCell('E2').value, '待配置');
-  assert.equal(worksheet.getCell('H2').value, '待配置规则');
-  assert.equal(worksheet.getCell('I2').value, '模块4计算框架已建立，待补充机电配置系统计算逻辑。');
+  assert.equal(worksheet.getCell('E2').value, '已生成');
+  assert.equal(worksheet.getCell('H2').value, '部分完成');
+  assert.equal(worksheet.getCell('I2').value, '供电系统方案已生成；餐饮排水系统和排油烟系统规则待补充。');
   assert.equal(worksheet.getColumn(9).width, 44);
   assert.equal(worksheet.autoFilter.to, 'I1');
+});
+
+test('adds grouped distribution box totals and transformer statistics to module 4 workbook', () => {
+  const ExcelJS = require('../vendor/exceljs.min.js');
+  const workbookData = {
+    rowsBySheet: {
+      供电系统: [
+        {
+          楼层: 'L1', 商铺编号: '1001', 业态类型: '普通餐饮', 面积: 100,
+          指定用电量: 20, 估算用电负荷: '40 kW', 配套电缆规格: 'YJV 4×10+1×6mm²',
+          配电箱编号: 'AL-1', 变压器编号: 'A1',
+        },
+        {
+          楼层: 'L1', 商铺编号: '1002', 业态类型: '普通餐饮', 面积: 100,
+          指定用电量: '', 估算用电负荷: '25 kW', 配套电缆规格: 'YJV 4×10+1×6mm²',
+          配电箱编号: 'AL-1', 变压器编号: 'A1',
+        },
+        {
+          楼层: 'L1', 商铺编号: '1003', 业态类型: '零售', 面积: 100,
+          指定用电量: '', 估算用电负荷: '30 kW', 配套电缆规格: 'YJV 4×10+1×6mm²',
+          配电箱编号: 'AL-2', 变压器编号: 'A1',
+        },
+      ],
+    },
+  };
+  const supplyPlan = global.MepSystemPlan.buildSupplySystemPlan(workbookData);
+  const workbook = createSystemPlanWorkbook(ExcelJS, [], supplyPlan);
+  const worksheet = workbook.getWorksheet('供电系统');
+
+  assert.ok(worksheet);
+  assert.deepEqual(
+    worksheet.getRow(1).values.slice(1),
+    global.MepSystemPlan.SUPPLY_SYSTEM_PLAN_HEADERS
+  );
+  assert.equal(worksheet.getCell('I2').value, '20 kW');
+  assert.equal(worksheet.getCell('L2').value, '45 kW');
+  assert.equal(worksheet.getCell('M2').value, 'YJV 4×16+1×10mm²');
+  assert.equal(worksheet.getCell('L3').master.address, 'L2');
+  assert.equal(worksheet.getCell('M3').master.address, 'M2');
+  assert.equal(worksheet.getCell('A6').value, '变压器统计');
+  assert.equal(worksheet.getCell('A7').value, '变压器编号');
+  assert.equal(worksheet.getCell('B7').value, '变压器服务商铺总功率');
+  assert.equal(worksheet.getCell('A8').value, 'A1');
+  assert.equal(worksheet.getCell('B8').value, '75 kW');
+  assert.equal(worksheet.autoFilter.to, 'N1');
 });
