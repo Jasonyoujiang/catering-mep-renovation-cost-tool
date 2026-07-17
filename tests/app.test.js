@@ -315,6 +315,14 @@ test('adds a supply system worksheet with electrical result columns', () => {
   assert.equal(worksheet.getCell('H2').value, '48 kW');
   assert.equal(worksheet.getCell('I2').value, 'YJV 4×10+1×6mm²');
   assert.equal(worksheet.getCell('I2').fill.fgColor.argb, 'FFFFF2CC');
-  assert.equal(worksheet.autoFilter.to, 'I1');
+  assert.equal(worksheet.getCell('J1').value, '配电箱编号');
+  assert.equal(worksheet.getCell('K1').value, '变压器编号');
+  assert.equal(worksheet.getCell('J2').value, null);
+  assert.equal(worksheet.getCell('K2').value, null);
+  assert.equal(worksheet.getCell('J2').fill.fgColor.argb, 'FFF8FAF7');
+  assert.equal(worksheet.getCell('K2').fill.fgColor.argb, 'FFF8FAF7');
+  assert.equal(worksheet.getColumn(10).width, 16);
+  assert.equal(worksheet.getColumn(11).width, 16);
+  assert.equal(worksheet.autoFilter.to, 'K1');
   assert.equal(worksheet.views[0].state, 'frozen');
 });
