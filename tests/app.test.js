@@ -20,6 +20,7 @@ const {
   applyTemplateCellStyle,
   SUPPLY_SYSTEM_HEADERS,
   CATERING_DRAINAGE_SYSTEM_HEADERS,
+  KITCHEN_EXHAUST_SYSTEM_HEADERS,
   createStyledTemplateWorkbook,
   createStyledResultWorkbook,
 } = require('../app.js');
@@ -363,6 +364,45 @@ test('adds a catering drainage worksheet with drainage result columns', () => {
   assert.equal(worksheet.getCell('F2').value, null);
   assert.equal(worksheet.getCell('F2').fill.fgColor.argb, 'FFF8FAF7');
   assert.equal(worksheet.getColumn(6).width, 16);
+  assert.equal(worksheet.autoFilter.to, 'F1');
+  assert.equal(worksheet.views[0].state, 'frozen');
+});
+
+test('adds a kitchen exhaust worksheet with exhaust result columns', () => {
+  const ExcelJS = require('../vendor/exceljs.min.js');
+  const resultRows = global.MepBatchPlanner.buildBatchPlanRows([
+    {
+      楼层: 'L1',
+      商铺编号: 'L1-101',
+      业态类型: '普通餐饮',
+      面积: 120,
+      指定用电量: '',
+      现状油烟管尺寸: '500×500',
+    },
+  ]);
+  const workbook = createStyledResultWorkbook(
+    ExcelJS,
+    resultRows,
+    global.MepBatchPlanner.BATCH_OUTPUT_HEADERS,
+    '机电条件测算结果'
+  );
+  const worksheet = workbook.getWorksheet('排油烟系统');
+
+  assert.ok(worksheet);
+  assert.deepEqual(
+    worksheet.getRow(1).values.slice(1),
+    KITCHEN_EXHAUST_SYSTEM_HEADERS
+  );
+  assert.equal(worksheet.getCell('A2').value, 'L1');
+  assert.equal(worksheet.getCell('B2').value, 'L1-101');
+  assert.equal(worksheet.getCell('C2').value, '普通餐饮');
+  assert.equal(worksheet.getCell('D2').value, 120);
+  assert.equal(worksheet.getCell('E2').value, '3840 m3/h');
+  assert.equal(worksheet.getCell('E2').fill.fgColor.argb, 'FFFFF2CC');
+  assert.equal(worksheet.getCell('F1').value, '风机及油烟处理设备编号');
+  assert.equal(worksheet.getCell('F2').value, null);
+  assert.equal(worksheet.getCell('F2').fill.fgColor.argb, 'FFF8FAF7');
+  assert.equal(worksheet.getColumn(6).width, 26);
   assert.equal(worksheet.autoFilter.to, 'F1');
   assert.equal(worksheet.views[0].state, 'frozen');
 });

@@ -23,6 +23,14 @@
     '排水管径',
     '隔油池编号',
   ];
+  const KITCHEN_EXHAUST_SYSTEM_HEADERS = [
+    '楼层',
+    '商铺编号',
+    '业态类型',
+    '面积',
+    '排油烟风量',
+    '风机及油烟处理设备编号',
+  ];
 
   function validateAreaInput(value) {
     const area = Number(value);
@@ -346,6 +354,7 @@
       排水管径: 14,
       隔油池编号: 16,
       排油烟风量: 16,
+      风机及油烟处理设备编号: 26,
       占用隔油池容积: 18,
       处理状态: 12,
       错误说明: 36,
@@ -637,6 +646,11 @@
       getCellFillColor: getBatchResultCellFillColor,
       tabColor: 'FF2D8A8A',
     });
+    addStyledWorksheet(workbook, rows, KITCHEN_EXHAUST_SYSTEM_HEADERS, '排油烟系统', {
+      getColumnWidth: getResultColumnWidth,
+      getCellFillColor: getBatchResultCellFillColor,
+      tabColor: 'FF567AA3',
+    });
 
     return workbook;
   }
@@ -811,6 +825,7 @@
     addGeneratedOutputGroupBorders,
     SUPPLY_SYSTEM_HEADERS,
     CATERING_DRAINAGE_SYSTEM_HEADERS,
+    KITCHEN_EXHAUST_SYSTEM_HEADERS,
     addStyledWorksheet,
     createStyledWorkbook,
     createStyledTemplateWorkbook,
