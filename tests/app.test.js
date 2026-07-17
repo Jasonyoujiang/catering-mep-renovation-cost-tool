@@ -25,6 +25,7 @@ const {
   createStyledTemplateWorkbook,
   createStyledResultWorkbook,
   createSystemPlanWorkbook,
+  createSystemPlanWorkbookFromSource,
   buildSystemPlanPreviewRows,
 } = require('../app.js');
 
@@ -563,4 +564,48 @@ test('adds grouped drainage and exhaust totals to module 4 workbook', () => {
   assert.equal(exhaustSheet.getCell('G2').value, '2000 m3/h');
   assert.equal(exhaustSheet.getCell('G3').master.address, 'G2');
   assert.equal(exhaustSheet.autoFilter.to, 'G1');
+});
+
+test('preserves the uploaded source worksheet when generating module 4 results', async () => {
+  const ExcelJS = require('../vendor/exceljs.min.js');
+  const sourceWorkbook = new ExcelJS.Workbook();
+  const sourceSheet = sourceWorkbook.addWorksheet('机电条件测算结果', {
+    properties: { tabColor: { argb: 'FF00AA66' } },
+  });
+  sourceSheet.getCell('A1').value = '原始表头';
+  sourceSheet.getCell('A2').value = '人工填写内容';
+  sourceSheet.getCell('A2').fill = {
+    type: 'pattern',
+    pattern: 'solid',
+    fgColor: { argb: 'FFFFF2CC' },
+  };
+  sourceWorkbook.addWorksheet('供电系统').getCell('A1').value = '旧供电数据';
+  sourceWorkbook.addWorksheet('餐饮排水系统').getCell('A1').value = '旧排水数据';
+  sourceWorkbook.addWorksheet('排油烟系统').getCell('A1').value = '旧排油烟数据';
+  const sourceBuffer = await sourceWorkbook.xlsx.writeBuffer();
+
+  const supplyPlan = {
+    rows: [],
+    boxGroups: [],
+    transformerStats: [],
+  };
+  const drainagePlan = { rows: [], groups: [] };
+  const exhaustPlan = { rows: [], groups: [] };
+  const outputWorkbook = await createSystemPlanWorkbookFromSource(
+    ExcelJS,
+    sourceBuffer,
+    supplyPlan,
+    drainagePlan,
+    exhaustPlan
+  );
+  const preservedSheet = outputWorkbook.getWorksheet('机电条件测算结果');
+
+  assert.equal(outputWorkbook.worksheets[0].name, '机电条件测算结果');
+  assert.equal(preservedSheet.getCell('A1').value, '原始表头');
+  assert.equal(preservedSheet.getCell('A2').value, '人工填写内容');
+  assert.equal(preservedSheet.getCell('A2').fill.fgColor.argb, 'FFFFF2CC');
+  assert.equal(outputWorkbook.getWorksheet('机电配置系统方案'), undefined);
+  assert.equal(outputWorkbook.getWorksheet('供电系统').getCell('A1').value, '楼层');
+  assert.equal(outputWorkbook.getWorksheet('餐饮排水系统').getCell('A1').value, '楼层');
+  assert.equal(outputWorkbook.getWorksheet('排油烟系统').getCell('A1').value, '楼层');
 });

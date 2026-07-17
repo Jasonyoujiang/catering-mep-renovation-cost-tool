@@ -726,6 +726,7 @@
             sheetNames: [...workbook.SheetNames],
             rowsBySheet,
             headersBySheet,
+            sourceBuffer: event.target.result,
           });
         } catch (error) {
           reject(new Error(`Excel 读取失败：${error.message}`));
@@ -975,11 +976,62 @@
     return workbook;
   }
 
-  async function writeSystemPlanResultFile(rows, supplyPlan, drainagePlan, exhaustPlan, fileName) {
+  function replaceSystemPlanWorksheets(workbook, supplyPlan, drainagePlan, exhaustPlan) {
+    ['供电系统', '餐饮排水系统', '排油烟系统'].forEach((sheetName) => {
+      const existingWorksheet = workbook.getWorksheet(sheetName);
+      if (existingWorksheet) {
+        workbook.removeWorksheet(existingWorksheet.id);
+      }
+    });
+
+    if (supplyPlan) {
+      addSupplySystemPlanWorksheet(workbook, supplyPlan);
+    }
+
+    if (drainagePlan) {
+      addGroupedSystemPlanWorksheet(workbook, drainagePlan, {
+        headers: systemPlan.CATERING_DRAINAGE_PLAN_HEADERS,
+        sheetName: '餐饮排水系统',
+        totalHeader: '隔油池容量',
+        tabColor: 'FF2D8A8A',
+      });
+    }
+
+    if (exhaustPlan) {
+      addGroupedSystemPlanWorksheet(workbook, exhaustPlan, {
+        headers: systemPlan.KITCHEN_EXHAUST_PLAN_HEADERS,
+        sheetName: '排油烟系统',
+        totalHeader: '风机及油烟处理设备风量',
+        tabColor: 'FF567AA3',
+      });
+    }
+
+    return workbook;
+  }
+
+  async function createSystemPlanWorkbookFromSource(
+    ExcelJS,
+    sourceBuffer,
+    supplyPlan,
+    drainagePlan,
+    exhaustPlan
+  ) {
+    const workbook = new ExcelJS.Workbook();
+    await workbook.xlsx.load(sourceBuffer);
+    return replaceSystemPlanWorksheets(workbook, supplyPlan, drainagePlan, exhaustPlan);
+  }
+
+  async function writeSystemPlanResultFile(
+    sourceBuffer,
+    supplyPlan,
+    drainagePlan,
+    exhaustPlan,
+    fileName
+  ) {
     const ExcelJS = requireStyledWorkbookLibrary();
-    const workbook = createSystemPlanWorkbook(
+    const workbook = await createSystemPlanWorkbookFromSource(
       ExcelJS,
-      rows,
+      sourceBuffer,
       supplyPlan,
       drainagePlan,
       exhaustPlan
@@ -1031,7 +1083,7 @@
 
       const fileName = `机电配置系统方案-${createTimestamp()}.xlsx`;
       await writeSystemPlanResultFile(
-        resultRows,
+        workbookData.sourceBuffer,
         supplyPlan,
         drainagePlan,
         exhaustPlan,
@@ -1104,6 +1156,8 @@
     addSupplySystemPlanWorksheet,
     addGroupedSystemPlanWorksheet,
     createSystemPlanWorkbook,
+    replaceSystemPlanWorksheets,
+    createSystemPlanWorkbookFromSource,
     buildPlanResultRows,
     buildCostResultRows,
     buildBatchPreviewRows,
