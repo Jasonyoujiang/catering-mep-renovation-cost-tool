@@ -15,6 +15,14 @@
     '配电箱编号',
     '变压器编号',
   ];
+  const CATERING_DRAINAGE_SYSTEM_HEADERS = [
+    '楼层',
+    '商铺编号',
+    '业态类型',
+    '面积',
+    '排水管径',
+    '隔油池编号',
+  ];
 
   function validateAreaInput(value) {
     const area = Number(value);
@@ -336,6 +344,7 @@
       变压器编号: 16,
       供水管径: 14,
       排水管径: 14,
+      隔油池编号: 16,
       排油烟风量: 16,
       占用隔油池容积: 18,
       处理状态: 12,
@@ -623,6 +632,11 @@
       getCellFillColor: getBatchResultCellFillColor,
       tabColor: 'FF347EA4',
     });
+    addStyledWorksheet(workbook, rows, CATERING_DRAINAGE_SYSTEM_HEADERS, '餐饮排水系统', {
+      getColumnWidth: getResultColumnWidth,
+      getCellFillColor: getBatchResultCellFillColor,
+      tabColor: 'FF2D8A8A',
+    });
 
     return workbook;
   }
@@ -796,6 +810,7 @@
     addResultFillLegend,
     addGeneratedOutputGroupBorders,
     SUPPLY_SYSTEM_HEADERS,
+    CATERING_DRAINAGE_SYSTEM_HEADERS,
     addStyledWorksheet,
     createStyledWorkbook,
     createStyledTemplateWorkbook,
