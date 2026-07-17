@@ -2,6 +2,17 @@
   const rules = global.MepRenovationRules;
   const catalog = global.MepCostCatalog;
   const batch = global.MepBatchPlanner;
+  const SUPPLY_SYSTEM_HEADERS = [
+    '楼层',
+    '商铺编号',
+    '业态类型',
+    '面积',
+    '指定用电量',
+    '现状电缆1',
+    '现状电缆2',
+    '估算用电负荷',
+    '配套电缆规格',
+  ];
 
   function validateAreaInput(value) {
     const area = Number(value);
@@ -421,14 +432,10 @@
     });
   }
 
-  function createStyledWorkbook(ExcelJS, rows, headers, sheetName, options = {}) {
-    const workbook = new ExcelJS.Workbook();
-    workbook.creator = '商铺机电改造方案与成本测算程序';
-    workbook.created = new Date();
-
+  function addStyledWorksheet(workbook, rows, headers, sheetName, options = {}) {
     const worksheet = workbook.addWorksheet(sheetName, {
       views: [{ state: 'frozen', ySplit: 1 }],
-      properties: { tabColor: { argb: 'FF14513F' } },
+      properties: { tabColor: { argb: options.tabColor || 'FF14513F' } },
     });
     worksheet.columns = headers.map((header) => ({
       header,
@@ -508,6 +515,14 @@
       }
     }
 
+    return worksheet;
+  }
+
+  function createStyledWorkbook(ExcelJS, rows, headers, sheetName, options = {}) {
+    const workbook = new ExcelJS.Workbook();
+    workbook.creator = '商铺机电改造方案与成本测算程序';
+    workbook.created = new Date();
+    addStyledWorksheet(workbook, rows, headers, sheetName, options);
     return workbook;
   }
 
@@ -598,6 +613,13 @@
     const worksheet = workbook.getWorksheet(sheetName);
     addGeneratedOutputGroupBorders(worksheet, headers, rows.length);
     addResultFillLegend(worksheet, headers, rows.length);
+
+    addStyledWorksheet(workbook, rows, SUPPLY_SYSTEM_HEADERS, '供电系统', {
+      getColumnWidth: getResultColumnWidth,
+      getCellFillColor: getBatchResultCellFillColor,
+      tabColor: 'FF347EA4',
+    });
+
     return workbook;
   }
 
@@ -769,6 +791,8 @@
     applyTemplateCellStyle,
     addResultFillLegend,
     addGeneratedOutputGroupBorders,
+    SUPPLY_SYSTEM_HEADERS,
+    addStyledWorksheet,
     createStyledWorkbook,
     createStyledTemplateWorkbook,
     createStyledResultWorkbook,

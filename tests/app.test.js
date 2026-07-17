@@ -18,6 +18,7 @@ const {
   getResultColumnWidth,
   getBatchResultCellFillColor,
   applyTemplateCellStyle,
+  SUPPLY_SYSTEM_HEADERS,
   createStyledTemplateWorkbook,
   createStyledResultWorkbook,
 } = require('../app.js');
@@ -280,4 +281,40 @@ test('adds fill color reuse explanations below result rows', () => {
   assert.equal(worksheet.getCell('P2').border.right.style, 'medium');
   assert.equal(worksheet.getCell('L3').border?.left?.style, undefined);
   assert.equal(worksheet.getCell('P3').border?.right?.style, undefined);
+});
+
+test('adds a supply system worksheet with electrical result columns', () => {
+  const ExcelJS = require('../vendor/exceljs.min.js');
+  const resultRows = global.MepBatchPlanner.buildBatchPlanRows([
+    {
+      楼层: 'L1',
+      商铺编号: 'L1-101',
+      业态类型: '普通餐饮',
+      面积: 120,
+      指定用电量: '',
+      现状电缆1: '4×25+1×16',
+      现状电缆2: '',
+    },
+  ]);
+  const workbook = createStyledResultWorkbook(
+    ExcelJS,
+    resultRows,
+    global.MepBatchPlanner.BATCH_OUTPUT_HEADERS,
+    '机电条件测算结果'
+  );
+  const worksheet = workbook.getWorksheet('供电系统');
+
+  assert.ok(worksheet);
+  assert.deepEqual(
+    worksheet.getRow(1).values.slice(1),
+    SUPPLY_SYSTEM_HEADERS
+  );
+  assert.equal(worksheet.getCell('A2').value, 'L1');
+  assert.equal(worksheet.getCell('B2').value, 'L1-101');
+  assert.equal(worksheet.getCell('F2').value, '4×25+1×16');
+  assert.equal(worksheet.getCell('H2').value, '48 kW');
+  assert.equal(worksheet.getCell('I2').value, 'YJV 4×10+1×6mm²');
+  assert.equal(worksheet.getCell('I2').fill.fgColor.argb, 'FFFFF2CC');
+  assert.equal(worksheet.autoFilter.to, 'I1');
+  assert.equal(worksheet.views[0].state, 'frozen');
 });
