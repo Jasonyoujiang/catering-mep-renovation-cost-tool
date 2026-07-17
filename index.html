@@ -107,6 +107,35 @@
           <div class="output-stack" data-batch-output></div>
           <p class="form-message" data-batch-message data-tone="neutral"></p>
         </article>
+
+        <article class="panel panel--wide panel--system-plan">
+          <div class="panel__header">
+            <span>04</span>
+            <div>
+              <h2>机电配置系统方案生成</h2>
+              <p>上传模块3生成并人工补充后的 Excel，生成机电配置系统方案结果表。</p>
+            </div>
+          </div>
+
+          <form class="form-grid system-plan-form" data-system-plan-form>
+            <label class="file-field">
+              <span>模块3结果 Excel</span>
+              <input data-system-plan-file class="file-field__input" type="file" accept=".xlsx,.xls">
+              <span class="file-picker">
+                <span class="file-picker__badge">XLSX</span>
+                <span class="file-picker__content">
+                  <strong data-system-plan-file-name>未选择文件</strong>
+                  <small>支持模块3生成并人工补充后的 .xlsx / .xls 文件</small>
+                </span>
+                <span class="file-picker__action">选择文件</span>
+              </span>
+            </label>
+            <button type="submit">生成系统方案 Excel</button>
+          </form>
+
+          <div class="output-stack" data-system-plan-output></div>
+          <p class="form-message" data-system-plan-message data-tone="neutral"></p>
+        </article>
       </section>
     </main>
 
@@ -118,6 +147,7 @@
     <script src="data/renovation-unit-price-summary.js?v=20260521-renovation-unit-price"></script>
     <script src="data/items.js?v=20260521-renovation-unit-price"></script>
     <script src="data/batch.js?v=20260715-excel-template-output"></script>
-    <script src="app.js?v=20260717-drainage-grease-volume"></script>
+    <script src="data/system-plan.js?v=20260717-system-plan-framework"></script>
+    <script src="app.js?v=20260717-system-plan-framework"></script>
   </body>
 </html>

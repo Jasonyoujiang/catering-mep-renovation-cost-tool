@@ -2,6 +2,7 @@
   const rules = global.MepRenovationRules;
   const catalog = global.MepCostCatalog;
   const batch = global.MepBatchPlanner;
+  const systemPlan = global.MepSystemPlan;
   const SUPPLY_SYSTEM_HEADERS = [
     '楼层',
     '商铺编号',
@@ -357,7 +358,11 @@
       排油烟风量: 16,
       风机及油烟处理设备编号: 26,
       占用隔油池容积: 18,
+      供电系统配置: 20,
+      餐饮排水系统配置: 22,
+      排油烟系统配置: 20,
       处理状态: 12,
+      备注: 44,
       错误说明: 36,
     };
 
@@ -686,7 +691,7 @@
     downloadWorkbookBuffer(buffer, fileName);
   }
 
-  function readExcelRows(file) {
+  function readExcelWorkbook(file) {
     const xlsx = requireSpreadsheetLibrary();
 
     return new Promise((resolve, reject) => {
@@ -694,9 +699,28 @@
       reader.onload = (event) => {
         try {
           const workbook = xlsx.read(event.target.result, { type: 'array' });
-          const sheetName = workbook.SheetNames[0];
-          const worksheet = workbook.Sheets[sheetName];
-          resolve(xlsx.utils.sheet_to_json(worksheet, { defval: '', raw: false }));
+          const rowsBySheet = {};
+          const headersBySheet = {};
+
+          workbook.SheetNames.forEach((sheetName) => {
+            const worksheet = workbook.Sheets[sheetName];
+            const matrix = xlsx.utils.sheet_to_json(worksheet, {
+              header: 1,
+              defval: '',
+              raw: false,
+            });
+            rowsBySheet[sheetName] = xlsx.utils.sheet_to_json(worksheet, {
+              defval: '',
+              raw: false,
+            });
+            headersBySheet[sheetName] = (matrix[0] || []).map((header) => String(header ?? '').trim());
+          });
+
+          resolve({
+            sheetNames: [...workbook.SheetNames],
+            rowsBySheet,
+            headersBySheet,
+          });
         } catch (error) {
           reject(new Error(`Excel 读取失败：${error.message}`));
         }
@@ -704,6 +728,12 @@
       reader.onerror = () => reject(new Error('Excel 文件读取失败，请重新选择文件。'));
       reader.readAsArrayBuffer(file);
     });
+  }
+
+  async function readExcelRows(file) {
+    const workbookData = await readExcelWorkbook(file);
+    const firstSheetName = workbookData.sheetNames[0];
+    return workbookData.rowsBySheet[firstSheetName] || [];
   }
 
   function buildBatchPreviewRows(rows) {
@@ -720,6 +750,17 @@
 
   function updateBatchFileName(fileInput) {
     const fileName = document.querySelector('[data-batch-file-name]');
+    if (!fileName) {
+      return;
+    }
+
+    fileName.textContent = fileInput.files && fileInput.files.length > 0
+      ? fileInput.files[0].name
+      : '未选择文件';
+  }
+
+  function updateSystemPlanFileName(fileInput) {
+    const fileName = document.querySelector('[data-system-plan-file-name]');
     if (!fileName) {
       return;
     }
@@ -786,6 +827,81 @@
     }
   }
 
+  function createSystemPlanWorkbook(ExcelJS, rows) {
+    return createStyledWorkbook(
+      ExcelJS,
+      rows,
+      systemPlan.SYSTEM_PLAN_OUTPUT_HEADERS,
+      '机电配置系统方案',
+      {
+        getColumnWidth: getResultColumnWidth,
+        tabColor: 'FF7566A8',
+      }
+    );
+  }
+
+  async function writeSystemPlanResultFile(rows, fileName) {
+    const ExcelJS = requireStyledWorkbookLibrary();
+    const workbook = createSystemPlanWorkbook(ExcelJS, rows);
+    const buffer = await workbook.xlsx.writeBuffer();
+    downloadWorkbookBuffer(buffer, fileName);
+  }
+
+  function buildSystemPlanPreviewRows(rows) {
+    return rows.slice(0, 5).map((row) => [
+      row.楼层,
+      row.商铺编号,
+      row.业态类型,
+      row.面积,
+      row.处理状态,
+    ]);
+  }
+
+  async function handleSystemPlanSubmit(event) {
+    event.preventDefault();
+    const fileInput = document.querySelector('[data-system-plan-file]');
+    const output = document.querySelector('[data-system-plan-output]');
+    const message = document.querySelector('[data-system-plan-message]');
+    output.innerHTML = '';
+
+    if (!fileInput.files || fileInput.files.length === 0) {
+      setMessage(message, '请先选择模块3生成并人工补充后的 Excel 文件。', 'error');
+      return;
+    }
+
+    try {
+      const workbookData = await readExcelWorkbook(fileInput.files[0]);
+      const validation = systemPlan.validateSystemPlanWorkbook(workbookData);
+
+      if (!validation.valid) {
+        setMessage(message, validation.message, 'error');
+        return;
+      }
+
+      const resultRows = systemPlan.buildSystemPlanRows(workbookData);
+      if (resultRows.length === 0) {
+        setMessage(message, '“机电条件测算结果”工作表中没有可处理的商铺数据。', 'error');
+        return;
+      }
+
+      const fileName = `机电配置系统方案-${createTimestamp()}.xlsx`;
+      await writeSystemPlanResultFile(resultRows, fileName);
+      renderTable(
+        output,
+        'batch-table',
+        ['楼层', '商铺编号', '业态类型', '面积', '处理状态'],
+        buildSystemPlanPreviewRows(resultRows)
+      );
+      setMessage(
+        message,
+        `已读取 ${resultRows.length} 个商铺；模块4框架结果 Excel 已下载，计算规则待补充。`,
+        'success'
+      );
+    } catch (error) {
+      setMessage(message, error.message, 'error');
+    }
+  }
+
   function initApp() {
     renderDiningTypes();
     renderCostCategories();
@@ -809,6 +925,9 @@
     const batchFileInput = document.querySelector('[data-batch-file]');
     batchFileInput.addEventListener('change', () => updateBatchFileName(batchFileInput));
     document.querySelector('[data-batch-form]').addEventListener('submit', handleBatchSubmit);
+    const systemPlanFileInput = document.querySelector('[data-system-plan-file]');
+    systemPlanFileInput.addEventListener('change', () => updateSystemPlanFileName(systemPlanFileInput));
+    document.querySelector('[data-system-plan-form]').addEventListener('submit', handleSystemPlanSubmit);
   }
 
   const api = {
@@ -831,10 +950,13 @@
     createStyledWorkbook,
     createStyledTemplateWorkbook,
     createStyledResultWorkbook,
+    createSystemPlanWorkbook,
     buildPlanResultRows,
     buildCostResultRows,
     buildBatchPreviewRows,
+    buildSystemPlanPreviewRows,
     updateBatchFileName,
+    updateSystemPlanFileName,
     initApp,
   };
 

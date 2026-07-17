@@ -4,6 +4,7 @@ const assert = require('node:assert/strict');
 global.MepRenovationRules = require('../data/rules.js');
 global.MepCostCatalog = require('../data/items.js');
 global.MepBatchPlanner = require('../data/batch.js');
+global.MepSystemPlan = require('../data/system-plan.js');
 
 const {
   validateAreaInput,
@@ -23,6 +24,8 @@ const {
   KITCHEN_EXHAUST_SYSTEM_HEADERS,
   createStyledTemplateWorkbook,
   createStyledResultWorkbook,
+  createSystemPlanWorkbook,
+  buildSystemPlanPreviewRows,
 } = require('../app.js');
 
 test('validates a positive shop area input', () => {
@@ -204,6 +207,21 @@ test('limits the batch preview table to five rows', () => {
 
   assert.equal(previewRows.length, 5);
   assert.deepEqual(previewRows.at(-1).slice(0, 2), ['L1', 'L1-005']);
+});
+
+test('limits the module 4 preview table to five rows', () => {
+  const rows = Array.from({ length: 6 }, (_, index) => ({
+    楼层: 'L1',
+    商铺编号: String(1001 + index),
+    业态类型: '普通餐饮',
+    面积: 100,
+    处理状态: '待配置规则',
+  }));
+
+  const previewRows = buildSystemPlanPreviewRows(rows);
+
+  assert.equal(previewRows.length, 5);
+  assert.deepEqual(previewRows.at(-1), ['L1', '1005', '普通餐饮', 100, '待配置规则']);
 });
 
 test('applies centered and colored styles to Excel template cells', () => {
@@ -409,4 +427,36 @@ test('adds a kitchen exhaust worksheet with exhaust result columns', () => {
   assert.equal(worksheet.getColumn(6).width, 26);
   assert.equal(worksheet.autoFilter.to, 'F1');
   assert.equal(worksheet.views[0].state, 'frozen');
+});
+
+test('creates a styled module 4 system plan workbook', () => {
+  const ExcelJS = require('../vendor/exceljs.min.js');
+  const rows = global.MepSystemPlan.buildSystemPlanRows({
+    rowsBySheet: {
+      机电条件测算结果: [
+        {
+          楼层: 'L1',
+          商铺编号: '1001',
+          业态类型: '普通餐饮',
+          面积: 120,
+          处理状态: '成功',
+        },
+      ],
+    },
+  });
+  const workbook = createSystemPlanWorkbook(ExcelJS, rows);
+  const worksheet = workbook.getWorksheet('机电配置系统方案');
+
+  assert.ok(worksheet);
+  assert.deepEqual(
+    worksheet.getRow(1).values.slice(1),
+    global.MepSystemPlan.SYSTEM_PLAN_OUTPUT_HEADERS
+  );
+  assert.equal(worksheet.getCell('A2').value, 'L1');
+  assert.equal(worksheet.getCell('B2').value, '1001');
+  assert.equal(worksheet.getCell('E2').value, '待配置');
+  assert.equal(worksheet.getCell('H2').value, '待配置规则');
+  assert.equal(worksheet.getCell('I2').value, '模块4计算框架已建立，待补充机电配置系统计算逻辑。');
+  assert.equal(worksheet.getColumn(9).width, 44);
+  assert.equal(worksheet.autoFilter.to, 'I1');
 });

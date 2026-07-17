@@ -195,6 +195,12 @@ h1 {
   align-items: end;
 }
 
+.system-plan-form {
+  grid-template-columns: minmax(420px, 1fr) 230px;
+  gap: 18px;
+  align-items: end;
+}
+
 label {
   display: grid;
   gap: 9px;
@@ -378,7 +384,8 @@ select:disabled {
   box-shadow: 0 0 0 3px rgba(33, 116, 91, 0.11);
 }
 
-.batch-form button {
+.batch-form button,
+.system-plan-form button {
   min-height: 58px;
 }
 
@@ -589,7 +596,8 @@ button:active {
   .app-header,
   .workspace,
   .form-grid,
-  .batch-form {
+  .batch-form,
+  .system-plan-form {
     grid-template-columns: 1fr;
   }
 
