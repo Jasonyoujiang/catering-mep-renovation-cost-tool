@@ -463,8 +463,8 @@ test('creates a styled module 4 system plan workbook', () => {
   assert.equal(worksheet.getCell('A2').value, 'L1');
   assert.equal(worksheet.getCell('B2').value, '1001');
   assert.equal(worksheet.getCell('E2').value, '已生成');
-  assert.equal(worksheet.getCell('H2').value, '部分完成');
-  assert.equal(worksheet.getCell('I2').value, '供电系统方案已生成；餐饮排水系统和排油烟系统规则待补充。');
+  assert.equal(worksheet.getCell('H2').value, '已完成');
+  assert.equal(worksheet.getCell('I2').value, '供电系统、餐饮排水系统和排油烟系统方案已生成。');
   assert.equal(worksheet.getColumn(9).width, 44);
   assert.equal(worksheet.autoFilter.to, 'I1');
 });
@@ -512,4 +512,55 @@ test('adds grouped distribution box totals and transformer statistics to module 
   assert.equal(worksheet.getCell('A8').value, 'A1');
   assert.equal(worksheet.getCell('B8').value, '75 kW');
   assert.equal(worksheet.autoFilter.to, 'N1');
+});
+
+test('adds grouped drainage and exhaust totals to module 4 workbook', () => {
+  const ExcelJS = require('../vendor/exceljs.min.js');
+  const workbookData = {
+    rowsBySheet: {
+      餐饮排水系统: [
+        {
+          楼层: 'L1', 商铺编号: '1001', 业态类型: '普通餐饮', 面积: 100,
+          排水管径: 'DN110', 占用隔油池容积: '0.5 m3', 隔油池编号: 'p1',
+        },
+        {
+          楼层: 'L1', 商铺编号: '1002', 业态类型: '普通餐饮', 面积: 100,
+          排水管径: 'DN110', 占用隔油池容积: '0.7 m3', 隔油池编号: 'P1',
+        },
+      ],
+      排油烟系统: [
+        {
+          楼层: 'L1', 商铺编号: '1001', 业态类型: '普通餐饮', 面积: 100,
+          排油烟风量: '600 m3/h', 风机及油烟处理设备编号: 'p2',
+        },
+        {
+          楼层: 'L1', 商铺编号: '1002', 业态类型: '普通餐饮', 面积: 100,
+          排油烟风量: '1400 m3/h', 风机及油烟处理设备编号: 'P2',
+        },
+      ],
+    },
+  };
+  const drainagePlan = global.MepSystemPlan.buildDrainageSystemPlan(workbookData);
+  const exhaustPlan = global.MepSystemPlan.buildExhaustSystemPlan(workbookData);
+  const workbook = createSystemPlanWorkbook(ExcelJS, [], null, drainagePlan, exhaustPlan);
+  const drainageSheet = workbook.getWorksheet('餐饮排水系统');
+  const exhaustSheet = workbook.getWorksheet('排油烟系统');
+
+  assert.deepEqual(
+    drainageSheet.getRow(1).values.slice(1),
+    global.MepSystemPlan.CATERING_DRAINAGE_PLAN_HEADERS
+  );
+  assert.equal(drainageSheet.getCell('G2').value, 'P1');
+  assert.equal(drainageSheet.getCell('H2').value, '1.2 m3');
+  assert.equal(drainageSheet.getCell('H3').master.address, 'H2');
+  assert.equal(drainageSheet.autoFilter.to, 'H1');
+
+  assert.deepEqual(
+    exhaustSheet.getRow(1).values.slice(1),
+    global.MepSystemPlan.KITCHEN_EXHAUST_PLAN_HEADERS
+  );
+  assert.equal(exhaustSheet.getCell('F2').value, 'P2');
+  assert.equal(exhaustSheet.getCell('G2').value, '2000 m3/h');
+  assert.equal(exhaustSheet.getCell('G3').master.address, 'G2');
+  assert.equal(exhaustSheet.autoFilter.to, 'G1');
 });

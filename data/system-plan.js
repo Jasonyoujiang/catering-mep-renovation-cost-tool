@@ -21,8 +21,17 @@
       '配电箱编号',
       '变压器编号',
     ],
-    餐饮排水系统: BASE_INPUT_HEADERS,
-    排油烟系统: BASE_INPUT_HEADERS,
+    餐饮排水系统: [
+      ...BASE_INPUT_HEADERS,
+      '排水管径',
+      '占用隔油池容积',
+      '隔油池编号',
+    ],
+    排油烟系统: [
+      ...BASE_INPUT_HEADERS,
+      '排油烟风量',
+      '风机及油烟处理设备编号',
+    ],
   };
 
   const SYSTEM_PLAN_OUTPUT_HEADERS = [
@@ -52,6 +61,27 @@
     '配电箱总功率',
     '配电箱电缆规格',
     '变压器编号',
+  ];
+
+  const CATERING_DRAINAGE_PLAN_HEADERS = [
+    '楼层',
+    '商铺编号',
+    '业态类型',
+    '面积',
+    '排水管径',
+    '占用隔油池容积',
+    '隔油池编号',
+    '隔油池容量',
+  ];
+
+  const KITCHEN_EXHAUST_PLAN_HEADERS = [
+    '楼层',
+    '商铺编号',
+    '业态类型',
+    '面积',
+    '排油烟风量',
+    '风机及油烟处理设备编号',
+    '风机及油烟处理设备风量',
   ];
 
   function normalizeText(value) {
@@ -109,6 +139,10 @@
     });
   }
 
+  function normalizeGroupId(value) {
+    return normalizeText(value).toUpperCase();
+  }
+
   function validateSystemPlanWorkbook(workbookData) {
     const sheetNames = Array.isArray(workbookData?.sheetNames)
       ? workbookData.sheetNames
@@ -156,10 +190,10 @@
         业态类型: normalizeText(row.业态类型),
         面积: row.面积 ?? '',
         供电系统配置: '已生成',
-        餐饮排水系统配置: '待配置',
-        排油烟系统配置: '待配置',
-        处理状态: '部分完成',
-        备注: '供电系统方案已生成；餐饮排水系统和排油烟系统规则待补充。',
+        餐饮排水系统配置: '已生成',
+        排油烟系统配置: '已生成',
+        处理状态: '已完成',
+        备注: '供电系统、餐饮排水系统和排油烟系统方案已生成。',
       }));
   }
 
@@ -257,14 +291,106 @@
     };
   }
 
+  function buildGroupedSystemPlan(sourceRows, options) {
+    const preparedRows = sourceRows
+      .filter((row) => normalizeText(row?.商铺编号) !== '')
+      .map((sourceRow, originalIndex) => {
+        const groupId = normalizeGroupId(sourceRow[options.groupHeader]);
+        const row = {};
+        options.sourceHeaders.forEach((header) => {
+          row[header] = header === options.groupHeader
+            ? groupId
+            : sourceRow[header] ?? '';
+        });
+        row[options.totalHeader] = '';
+
+        return {
+          originalIndex,
+          groupId,
+          amount: parsePowerKw(sourceRow[options.amountHeader]) || 0,
+          row,
+        };
+      })
+      .sort((left, right) => (
+        compareGroupIds(left.groupId, right.groupId)
+        || left.originalIndex - right.originalIndex
+      ));
+
+    const groups = [];
+    let currentGroup = null;
+
+    preparedRows.forEach((item, index) => {
+      if (!item.groupId) {
+        return;
+      }
+
+      if (!currentGroup || currentGroup.groupId !== item.groupId) {
+        currentGroup = {
+          groupId: item.groupId,
+          startIndex: index,
+          endIndex: index,
+          totalValue: 0,
+          formattedTotal: '',
+        };
+        groups.push(currentGroup);
+      }
+
+      currentGroup.endIndex = index;
+      currentGroup.totalValue += item.amount;
+    });
+
+    groups.forEach((group) => {
+      group.totalValue = roundPowerKw(group.totalValue);
+      group.formattedTotal = `${group.totalValue} ${options.unit}`;
+      for (let index = group.startIndex; index <= group.endIndex; index += 1) {
+        preparedRows[index].row[options.totalHeader] = group.formattedTotal;
+      }
+    });
+
+    return {
+      rows: preparedRows.map((item) => item.row),
+      groups,
+    };
+  }
+
+  function buildDrainageSystemPlan(workbookData) {
+    return buildGroupedSystemPlan(
+      workbookData?.rowsBySheet?.餐饮排水系统 || [],
+      {
+        sourceHeaders: CATERING_DRAINAGE_PLAN_HEADERS.slice(0, -1),
+        groupHeader: '隔油池编号',
+        amountHeader: '占用隔油池容积',
+        totalHeader: '隔油池容量',
+        unit: 'm3',
+      }
+    );
+  }
+
+  function buildExhaustSystemPlan(workbookData) {
+    return buildGroupedSystemPlan(
+      workbookData?.rowsBySheet?.排油烟系统 || [],
+      {
+        sourceHeaders: KITCHEN_EXHAUST_PLAN_HEADERS.slice(0, -1),
+        groupHeader: '风机及油烟处理设备编号',
+        amountHeader: '排油烟风量',
+        totalHeader: '风机及油烟处理设备风量',
+        unit: 'm3/h',
+      }
+    );
+  }
+
   const api = {
     REQUIRED_INPUT_SHEETS,
     REQUIRED_SHEET_HEADERS,
     SYSTEM_PLAN_OUTPUT_HEADERS,
     SUPPLY_SYSTEM_PLAN_HEADERS,
+    CATERING_DRAINAGE_PLAN_HEADERS,
+    KITCHEN_EXHAUST_PLAN_HEADERS,
     validateSystemPlanWorkbook,
     buildSystemPlanRows,
     buildSupplySystemPlan,
+    buildDrainageSystemPlan,
+    buildExhaustSystemPlan,
     parsePowerKw,
     resolveConfigurationPowerKw,
   };

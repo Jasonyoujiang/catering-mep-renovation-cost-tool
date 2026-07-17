@@ -359,8 +359,10 @@
       供水管径: 14,
       排水管径: 14,
       隔油池编号: 16,
+      隔油池容量: 18,
       排油烟风量: 16,
       风机及油烟处理设备编号: 26,
+      风机及油烟处理设备风量: 28,
       占用隔油池容积: 18,
       供电系统配置: 20,
       餐饮排水系统配置: 22,
@@ -902,7 +904,41 @@
     return worksheet;
   }
 
-  function createSystemPlanWorkbook(ExcelJS, rows, supplyPlan) {
+  function addGroupedSystemPlanWorksheet(workbook, plan, options) {
+    const worksheet = addStyledWorksheet(
+      workbook,
+      plan.rows,
+      options.headers,
+      options.sheetName,
+      {
+        getColumnWidth: getResultColumnWidth,
+        getCellFillColor: getBatchResultCellFillColor,
+        tabColor: options.tabColor,
+      }
+    );
+    const totalColumn = options.headers.indexOf(options.totalHeader) + 1;
+
+    plan.groups.forEach((group) => {
+      const startRow = group.startIndex + 2;
+      const endRow = group.endIndex + 2;
+
+      if (endRow > startRow) {
+        worksheet.mergeCells(startRow, totalColumn, endRow, totalColumn);
+      }
+
+      const totalCell = worksheet.getCell(startRow, totalColumn);
+      totalCell.alignment = {
+        horizontal: 'center',
+        vertical: 'middle',
+        wrapText: true,
+      };
+      totalCell.font = { ...totalCell.font, bold: true };
+    });
+
+    return worksheet;
+  }
+
+  function createSystemPlanWorkbook(ExcelJS, rows, supplyPlan, drainagePlan, exhaustPlan) {
     const workbook = createStyledWorkbook(
       ExcelJS,
       rows,
@@ -918,12 +954,36 @@
       addSupplySystemPlanWorksheet(workbook, supplyPlan);
     }
 
+    if (drainagePlan) {
+      addGroupedSystemPlanWorksheet(workbook, drainagePlan, {
+        headers: systemPlan.CATERING_DRAINAGE_PLAN_HEADERS,
+        sheetName: '餐饮排水系统',
+        totalHeader: '隔油池容量',
+        tabColor: 'FF2D8A8A',
+      });
+    }
+
+    if (exhaustPlan) {
+      addGroupedSystemPlanWorksheet(workbook, exhaustPlan, {
+        headers: systemPlan.KITCHEN_EXHAUST_PLAN_HEADERS,
+        sheetName: '排油烟系统',
+        totalHeader: '风机及油烟处理设备风量',
+        tabColor: 'FF567AA3',
+      });
+    }
+
     return workbook;
   }
 
-  async function writeSystemPlanResultFile(rows, supplyPlan, fileName) {
+  async function writeSystemPlanResultFile(rows, supplyPlan, drainagePlan, exhaustPlan, fileName) {
     const ExcelJS = requireStyledWorkbookLibrary();
-    const workbook = createSystemPlanWorkbook(ExcelJS, rows, supplyPlan);
+    const workbook = createSystemPlanWorkbook(
+      ExcelJS,
+      rows,
+      supplyPlan,
+      drainagePlan,
+      exhaustPlan
+    );
     const buffer = await workbook.xlsx.writeBuffer();
     downloadWorkbookBuffer(buffer, fileName);
   }
@@ -962,13 +1022,21 @@
 
       const resultRows = systemPlan.buildSystemPlanRows(workbookData);
       const supplyPlan = systemPlan.buildSupplySystemPlan(workbookData);
+      const drainagePlan = systemPlan.buildDrainageSystemPlan(workbookData);
+      const exhaustPlan = systemPlan.buildExhaustSystemPlan(workbookData);
       if (resultRows.length === 0) {
         setMessage(message, '“机电条件测算结果”工作表中没有可处理的商铺数据。', 'error');
         return;
       }
 
       const fileName = `机电配置系统方案-${createTimestamp()}.xlsx`;
-      await writeSystemPlanResultFile(resultRows, supplyPlan, fileName);
+      await writeSystemPlanResultFile(
+        resultRows,
+        supplyPlan,
+        drainagePlan,
+        exhaustPlan,
+        fileName
+      );
       renderTable(
         output,
         'batch-table',
@@ -977,7 +1045,7 @@
       );
       setMessage(
         message,
-        `已读取 ${resultRows.length} 个商铺，生成 ${supplyPlan.boxGroups.length} 个配电箱汇总和 ${supplyPlan.transformerStats.length} 个变压器统计；结果 Excel 已下载。`,
+        `已读取 ${resultRows.length} 个商铺，生成 ${supplyPlan.boxGroups.length} 个配电箱、${supplyPlan.transformerStats.length} 个变压器、${drainagePlan.groups.length} 个隔油池和 ${exhaustPlan.groups.length} 组排油烟设备统计；结果 Excel 已下载。`,
         'success'
       );
     } catch (error) {
@@ -1034,6 +1102,7 @@
     createStyledTemplateWorkbook,
     createStyledResultWorkbook,
     addSupplySystemPlanWorksheet,
+    addGroupedSystemPlanWorksheet,
     createSystemPlanWorkbook,
     buildPlanResultRows,
     buildCostResultRows,

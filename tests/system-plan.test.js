@@ -81,10 +81,10 @@ test('builds placeholder system plan rows and ignores blank source rows', () => 
       业态类型: '普通餐饮',
       面积: '120',
       供电系统配置: '已生成',
-      餐饮排水系统配置: '待配置',
-      排油烟系统配置: '待配置',
-      处理状态: '部分完成',
-      备注: '供电系统方案已生成；餐饮排水系统和排油烟系统规则待补充。',
+      餐饮排水系统配置: '已生成',
+      排油烟系统配置: '已生成',
+      处理状态: '已完成',
+      备注: '供电系统、餐饮排水系统和排油烟系统方案已生成。',
     },
   ]);
 });
@@ -145,4 +145,40 @@ test('uses module 1 special review result when a box total exceeds 500 kW', () =
 
   assert.equal(result.rows[0].配电箱总功率, '584 kW');
   assert.equal(result.rows[0].配电箱电缆规格, '需专项复核供电方案');
+});
+
+test('groups grease trap ids case-insensitively and sums occupied volume', () => {
+  const workbookData = createWorkbookData();
+  workbookData.rowsBySheet.餐饮排水系统 = [
+    { 商铺编号: '1003', 隔油池编号: 'P2', 占用隔油池容积: '无需新增' },
+    { 商铺编号: '1001', 隔油池编号: 'p1', 占用隔油池容积: '0.5 m3' },
+    { 商铺编号: '1002', 隔油池编号: 'P1', 占用隔油池容积: '0.7 m3' },
+  ];
+
+  const result = systemPlan.buildDrainageSystemPlan(workbookData);
+
+  assert.deepEqual(result.rows.map((row) => row.商铺编号), ['1001', '1002', '1003']);
+  assert.deepEqual(result.rows.map((row) => row.隔油池编号), ['P1', 'P1', 'P2']);
+  assert.equal(result.rows[0].隔油池容量, '1.2 m3');
+  assert.equal(result.rows[1].隔油池容量, '1.2 m3');
+  assert.equal(result.rows[2].隔油池容量, '0 m3');
+  assert.equal(result.groups.length, 2);
+});
+
+test('groups exhaust equipment ids case-insensitively and sums air volume', () => {
+  const workbookData = createWorkbookData();
+  workbookData.rowsBySheet.排油烟系统 = [
+    { 商铺编号: '1003', 风机及油烟处理设备编号: 'P3', 排油烟风量: '无需新增' },
+    { 商铺编号: '1001', 风机及油烟处理设备编号: 'p2', 排油烟风量: '600 m3/h' },
+    { 商铺编号: '1002', 风机及油烟处理设备编号: 'P2', 排油烟风量: '1400 m3/h' },
+  ];
+
+  const result = systemPlan.buildExhaustSystemPlan(workbookData);
+
+  assert.deepEqual(result.rows.map((row) => row.商铺编号), ['1001', '1002', '1003']);
+  assert.deepEqual(result.rows.map((row) => row.风机及油烟处理设备编号), ['P2', 'P2', 'P3']);
+  assert.equal(result.rows[0].风机及油烟处理设备风量, '2000 m3/h');
+  assert.equal(result.rows[1].风机及油烟处理设备风量, '2000 m3/h');
+  assert.equal(result.rows[2].风机及油烟处理设备风量, '0 m3/h');
+  assert.equal(result.groups.length, 2);
 });
