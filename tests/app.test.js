@@ -360,11 +360,15 @@ test('adds a catering drainage worksheet with drainage result columns', () => {
   assert.equal(worksheet.getCell('D2').value, 120);
   assert.equal(worksheet.getCell('E2').value, 'DN160');
   assert.equal(worksheet.getCell('E2').fill.fgColor.argb, 'FFFFF2CC');
-  assert.equal(worksheet.getCell('F1').value, '隔油池编号');
-  assert.equal(worksheet.getCell('F2').value, null);
+  assert.equal(worksheet.getCell('F1').value, '占用隔油池容积');
+  assert.equal(worksheet.getCell('F2').value, '1.2 m3');
   assert.equal(worksheet.getCell('F2').fill.fgColor.argb, 'FFF8FAF7');
-  assert.equal(worksheet.getColumn(6).width, 16);
-  assert.equal(worksheet.autoFilter.to, 'F1');
+  assert.equal(worksheet.getCell('G1').value, '隔油池编号');
+  assert.equal(worksheet.getCell('G2').value, null);
+  assert.equal(worksheet.getCell('G2').fill.fgColor.argb, 'FFF8FAF7');
+  assert.equal(worksheet.getColumn(6).width, 18);
+  assert.equal(worksheet.getColumn(7).width, 16);
+  assert.equal(worksheet.autoFilter.to, 'G1');
   assert.equal(worksheet.views[0].state, 'frozen');
 });
 

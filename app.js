@@ -21,6 +21,7 @@
     '业态类型',
     '面积',
     '排水管径',
+    '占用隔油池容积',
     '隔油池编号',
   ];
   const KITCHEN_EXHAUST_SYSTEM_HEADERS = [
