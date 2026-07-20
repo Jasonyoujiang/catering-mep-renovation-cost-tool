@@ -84,6 +84,13 @@
     '风机及油烟处理设备风量',
   ];
 
+  const HIGH_POWER_SUPPLY_CABLE_TIERS = [
+    { maxPowerKw: 550, specification: '2×(YJV 4×120+1×70mm²)' },
+    { maxPowerKw: 650, specification: '2×(YJV 4×150+1×70mm²)' },
+    { maxPowerKw: 750, specification: '2×(YJV 4×185+1×95mm²)' },
+    { maxPowerKw: 1000, specification: '2×(YJV 4×240+1×120mm²)' },
+  ];
+
   function normalizeText(value) {
     return String(value ?? '').trim();
   }
@@ -116,6 +123,13 @@
   }
 
   function selectSupplyCableByPowerKw(powerKw) {
+    if (powerKw >= 500) {
+      const matchedTier = HIGH_POWER_SUPPLY_CABLE_TIERS.find(
+        (tier) => powerKw <= tier.maxPowerKw
+      );
+      return matchedTier ? matchedTier.specification : '需专项复核供电方案';
+    }
+
     const selection = cableTable.selectCableByDemandKw(powerKw);
     return selection.isOutOfRange
       ? selection.recommendedCable
@@ -386,11 +400,13 @@
     SUPPLY_SYSTEM_PLAN_HEADERS,
     CATERING_DRAINAGE_PLAN_HEADERS,
     KITCHEN_EXHAUST_PLAN_HEADERS,
+    HIGH_POWER_SUPPLY_CABLE_TIERS,
     validateSystemPlanWorkbook,
     buildSystemPlanRows,
     buildSupplySystemPlan,
     buildDrainageSystemPlan,
     buildExhaustSystemPlan,
+    selectSupplyCableByPowerKw,
     parsePowerKw,
     resolveConfigurationPowerKw,
   };

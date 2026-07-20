@@ -134,17 +134,22 @@ test('groups supply rows by distribution box and summarizes transformer power', 
   ]);
 });
 
-test('uses module 1 special review result when a box total exceeds 500 kW', () => {
-  const workbookData = createWorkbookData();
-  workbookData.rowsBySheet.供电系统 = [
-    { 商铺编号: '1001', 指定用电量: 350, 估算用电负荷: '350 kW', 配电箱编号: 'AL-1' },
-    { 商铺编号: '1002', 指定用电量: 234, 估算用电负荷: '234 kW', 配电箱编号: 'AL-1' },
+test('selects high-power distribution box cables by the supplied tiers', () => {
+  const cases = [
+    [500, '2×(YJV 4×120+1×70mm²)'],
+    [550, '2×(YJV 4×120+1×70mm²)'],
+    [550.01, '2×(YJV 4×150+1×70mm²)'],
+    [650, '2×(YJV 4×150+1×70mm²)'],
+    [650.01, '2×(YJV 4×185+1×95mm²)'],
+    [750, '2×(YJV 4×185+1×95mm²)'],
+    [750.01, '2×(YJV 4×240+1×120mm²)'],
+    [1000, '2×(YJV 4×240+1×120mm²)'],
+    [1000.01, '需专项复核供电方案'],
   ];
 
-  const result = systemPlan.buildSupplySystemPlan(workbookData);
-
-  assert.equal(result.rows[0].配电箱总功率, '584 kW');
-  assert.equal(result.rows[0].配电箱电缆规格, '需专项复核供电方案');
+  cases.forEach(([powerKw, expected]) => {
+    assert.equal(systemPlan.selectSupplyCableByPowerKw(powerKw), expected);
+  });
 });
 
 test('groups grease trap ids case-insensitively and sums occupied volume', () => {
